@@ -12,7 +12,7 @@ The websites for [Kiln Linux](https://kilnlinux.org), hosted on Cloudflare Worke
 - `@astrojs/sitemap` for the project site; Starlight makes the docs sitemap
 - Tailwind CSS v4 for the site pages; the docs are restyled with plain CSS variables
 - Self-hosted IBM Plex Sans (text) and IBM Plex Mono (code), via Fontsource
-- No client-side JavaScript except the package search on `/packages`, which filters the table and keeps the query in `?q=`. The mobile menu is a `<details>` element.
+- No client-side JavaScript except the package search on `/search` (served at `search.kilnlinux.org/search`), which filters the table and keeps the query in `?q=`. The mobile menu is a `<details>` element.
 
 ## Develop
 
@@ -39,7 +39,7 @@ A plain, light layout in the style of classic distro homepages such as voidlinux
 
 | Path | What it is |
 | --- | --- |
-| `src/pages/` | `/`, `/download`, `/packages`, `/about`, `404` |
+| `src/pages/` | `/`, `/download`, `/search`, `/about`, `404` |
 | `src/layouts/Base.astro` | Shared head (SEO, Open Graph, canonical), nav, footer |
 | `src/components/` | `Logo` (triangle mark), `Wordmark`, `Nav`, `Footer`, `PageHeader`, `Section` (title column + content), `CodeBlock` |
 | `src/data/kiln.ts` | Every fact taken from the distro repo: toolchain, roadmap, kiln commands, recipes. Pages read from here. |
@@ -88,8 +88,9 @@ The `kilnlinux.org` zone must be on the same Cloudflare account. Cloudflare crea
 
 To deploy on push, connect the Git repository to each Worker under Settings, then Build. Use root directory `/` with `npm run build` for `kilnlinux-org`, and root directory `docs` with `npm run build` for `kilnlinux-docs`. Both use `npx wrangler deploy` as the deploy command. The build command can stay empty: each `wrangler.jsonc` runs `npm run build` before deploying.
 
-`search.kilnlinux.org` is a second custom domain on `kilnlinux-org`. `public/_redirects`
-sends `/search?q=…` on any host to `https://kilnlinux.org/packages?q=…`.
+`search.kilnlinux.org` is a second custom domain on `kilnlinux-org`. The package page is
+`src/pages/search.astro`, linked as `https://search.kilnlinux.org/search` (`SEARCH` in
+`src/data/site.ts`). `public/_redirects` sends old `/packages?q=…` links there.
 Each `wrangler.jsonc` lists its custom domains under `routes`, so a deploy attaches them.
 
 ISOs and packages will go in R2 once they exist. R2 isn't set up yet.

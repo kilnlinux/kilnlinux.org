@@ -1,5 +1,5 @@
 ---
-import { DOCS } from '../data/site';
+import { DOCS, SITE } from '../data/site';
 import Base from '../layouts/Base.astro';
 import PageHeader from '../components/PageHeader.astro';
 ---
@@ -7,7 +7,7 @@ import PageHeader from '../components/PageHeader.astro';
   <PageHeader title="Page not found" lede="Nothing lives at this address. It may have moved, or the link has a typo." />
   <div class="wrap">
     <p class="flex flex-wrap gap-x-6 gap-y-2">
-      <a href="/" class="link">Home</a>
+      <a href={`${SITE}/`} class="link">Home</a>
       <a href={`${DOCS}/`} class="link">Documentation</a>
     </p>
   </div>

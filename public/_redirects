@@ -1,2 +1,2 @@
-# search.kilnlinux.org/search?q=… lands on the package search. Query strings carry over.
-/search https://kilnlinux.org/packages 301
+# The package search lives on its own subdomain. Query strings carry over.
+/packages https://search.kilnlinux.org/search 301

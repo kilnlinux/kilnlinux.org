@@ -32,7 +32,8 @@ export default defineConfig({
   compressHTML: false,
   integrations: [
     sitemap({
-      filter: (page) => !/^\/404(?:\/|\.html)?$/.test(new URL(page).pathname),
+      // search.kilnlinux.org/search is canonical for the package page, so leave its kilnlinux.org copy out.
+      filter: (page) => !/^\/(?:404|search)(?:\/|\.html)?$/.test(new URL(page).pathname),
       serialize: (item) => ({ ...item, url: new URL(item.url).pathname === '/' ? item.url : item.url.replace(/\/+$/, '') }),
     }),
     docsInDev(),

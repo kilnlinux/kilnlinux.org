@@ -7,7 +7,7 @@ import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import { repo } from '../data/kiln';
 
-interface Props { title?: string; description?: string; noindex?: boolean }
+interface Props { title?: string; description?: string; noindex?: boolean; canonical?: string }
 const {
   title,
   noindex = false,
@@ -15,7 +15,7 @@ const {
 } = Astro.props;
 const fullTitle = title ? `${title} | Kiln Linux` : 'Kiln Linux: an independent distribution, built from source';
 const pathname = Astro.url.pathname.replace(/\/+$/, '') || '/';
-const canonical = new URL(pathname, Astro.site);
+const canonical = new URL(Astro.props.canonical ?? pathname, Astro.site);
 const image = new URL('/og.png', Astro.site);
 const home = new URL('/', Astro.site).href;
 const structuredData = {

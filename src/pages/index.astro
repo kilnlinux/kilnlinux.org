@@ -1,5 +1,5 @@
 ---
-import { DOCS } from '../data/site';
+import { DOCS, SEARCH } from '../data/site';
 import Base from '../layouts/Base.astro';
 import Logo from '../components/Logo.astro';
 import { commands, grubVersion, kilnVersion, recipes, repo, runitVersion, systemMissing, toolchain } from '../data/kiln';
@@ -66,7 +66,7 @@ const gh = (path: string) => `${repo}/tree/main/${path}`;
       <h2 class="text-2xl">Shell recipes</h2>
       <p>
         Each package is a short shell file: a name, version, source URL and sha256, with optional
-        <code>build</code> and <code>package</code> functions. <a href="/packages">{recipes.length} recipes</a> make up
+        <code>build</code> and <code>package</code> functions. <a href={SEARCH}>{recipes.length} recipes</a> make up
         the base system.
       </p>
       <p>
@@ -133,7 +133,7 @@ const gh = (path: string) => `${repo}/tree/main/${path}`;
       <h2 class="text-2xl">Packages</h2>
       <ul class="mt-3 list-disc space-y-1 pl-5 text-sm marker:text-mute">
         {featured.map((r) => <li><a href={gh(`recipes/${r.name}/template`).replace('/tree/', '/blob/')}>{r.name}</a> <span class="text-mute">{r.version}</span></li>)}
-        <li><a href="/packages">All {recipes.length} packages</a></li>
+        <li><a href={SEARCH}>All {recipes.length} packages</a></li>
       </ul>
     </div>
     <div>

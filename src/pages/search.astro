@@ -6,7 +6,7 @@ import Section from '../components/Section.astro';
 import CodeBlock from '../components/CodeBlock.astro';
 import { kilnMissing, recipes, repo } from '../data/kiln';
 ---
-<Base title="Packages" description={`The ${recipes.length} packages in Kiln Linux, each built from a recipe with kiln.`}>
+<Base title="Packages" canonical="https://search.kilnlinux.org/search" description={`The ${recipes.length} packages in Kiln Linux, each built from a recipe with kiln.`}>
   <PageHeader
     title="Packages"
     lede={`${recipes.length} recipes: the Kiln base system plus packages imported from Void’s templates. The base system is in the official package repository, so kiln can install it by name.`}
