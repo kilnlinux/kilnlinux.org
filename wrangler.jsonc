@@ -5,6 +5,13 @@
   "compatibility_date": "2026-10-31",
   // wrangler deploy runs this first, so a deploy never ships a missing or stale dist/.
   "build": { "command": "npm run build" },
+  // Wrangler attaches these domains on deploy; public/_redirects sends search.kilnlinux.org/search to /packages.
+  "routes": [
+    { "pattern": "kilnlinux.org", "custom_domain": true },
+    { "pattern": "search.kilnlinux.org", "custom_domain": true }
+  ],
+  "workers_dev": false,
+  "preview_urls": false,
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page"

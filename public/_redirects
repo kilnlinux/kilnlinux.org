@@ -1,0 +1,2 @@
+# search.kilnlinux.org/search?q=… lands on the package search. Query strings carry over.
+/search https://kilnlinux.org/packages 301

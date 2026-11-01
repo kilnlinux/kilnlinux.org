@@ -79,17 +79,18 @@ npm run deploy
 npm run deploy:docs
 ```
 
-Then attach the domains in the Cloudflare dashboard, under Workers & Pages > the Worker > Settings > Domains & Routes > Add > Custom domain:
+The deploy attaches each Worker's custom domains, listed under `routes` in its `wrangler.jsonc`:
 
-- `kilnlinux-org` gets `kilnlinux.org` (and `www.kilnlinux.org` if you want it)
+- `kilnlinux-org` gets `kilnlinux.org` and `search.kilnlinux.org`
 - `kilnlinux-docs` gets `docs.kilnlinux.org`
 
 The `kilnlinux.org` zone must be on the same Cloudflare account. Cloudflare creates the DNS records for custom domains.
 
 To deploy on push, connect the Git repository to each Worker under Settings, then Build. Use root directory `/` with `npm run build` for `kilnlinux-org`, and root directory `docs` with `npm run build` for `kilnlinux-docs`. Both use `npx wrangler deploy` as the deploy command. The build command can stay empty: each `wrangler.jsonc` runs `npm run build` before deploying.
 
-A Cloudflare redirect rule sends `search.kilnlinux.org/search?q=…` to
-`https://kilnlinux.org/packages?q=…`. No Worker serves that host.
+`search.kilnlinux.org` is a second custom domain on `kilnlinux-org`. `public/_redirects`
+sends `/search?q=…` on any host to `https://kilnlinux.org/packages?q=…`.
+Each `wrangler.jsonc` lists its custom domains under `routes`, so a deploy attaches them.
 
 ISOs and packages will go in R2 once they exist. R2 isn't set up yet.
 
