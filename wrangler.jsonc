@@ -1,7 +1,7 @@
 // Static site on Cloudflare Workers: no Worker script, assets only.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "kilnlinux",
+  "name": "kilnlinux-org",
   "compatibility_date": "2026-10-31",
   // wrangler deploy runs this first, so a deploy never ships a missing or stale dist/.
   "build": { "command": "npm run build" },
