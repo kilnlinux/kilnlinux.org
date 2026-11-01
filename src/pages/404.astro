@@ -1,0 +1,14 @@
+---
+import { DOCS } from '../data/site';
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+---
+<Base noindex title="Page not found" description="This page doesn’t exist.">
+  <PageHeader title="Page not found" lede="Nothing lives at this address. It may have moved, or the link has a typo." />
+  <div class="wrap">
+    <p class="flex flex-wrap gap-x-6 gap-y-2">
+      <a href="/" class="link">Home</a>
+      <a href={`${DOCS}/`} class="link">Documentation</a>
+    </p>
+  </div>
+</Base>

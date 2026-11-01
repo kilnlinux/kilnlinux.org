@@ -1,0 +1,30 @@
+{
+  "name": "kilnlinux-website",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "deploy": "astro build && npx wrangler deploy",
+    "dev:docs": "npm run dev -w docs",
+    "build:docs": "npm run build -w docs",
+    "deploy:docs": "npm run deploy -w docs"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "@fontsource-variable/ibm-plex-sans": "^5.3.0",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.4.4",
+    "tailwindcss": "^4.3.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "typescript": "^6.0.3"
+  },
+  "workspaces": [
+    "docs"
+  ]
+}

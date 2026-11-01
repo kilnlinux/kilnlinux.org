@@ -1,0 +1,104 @@
+---
+import { DOCS } from '../data/site';
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Section from '../components/Section.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import { repo, systemMissing } from '../data/kiln';
+
+const steps = [
+  {
+    title: 'Get the source and build kiln',
+    where: 'Host',
+    lines: [
+      { in: 'git clone https://github.com/kilnlinux/Kiln.git' },
+      { in: 'cd Kiln' },
+      { in: 'RUSTFLAGS="-C target-feature=+crt-static" cargo build --release --target x86_64-unknown-linux-gnu --manifest-path kiln/Cargo.toml' },
+    ],
+  },
+  {
+    title: 'Start the builder container',
+    where: 'Host',
+    lines: [
+      { in: 'podman build -t kiln-builder .' },
+      { in: 'podman run --rm -it --userns=keep-id -v "$PWD":/kiln:Z kiln-builder' },
+    ],
+  },
+  {
+    title: 'Bootstrap the toolchain and temporary system',
+    where: 'Inside the builder',
+    lines: [
+      { in: './bootstrap/00-host-check.sh' },
+      { in: './bootstrap/01-prepare.sh' },
+      { in: './bootstrap/02-cross-toolchain.sh' },
+      { in: './bootstrap/03-temp-tools.sh' },
+      { in: 'exit' },
+    ],
+  },
+  {
+    title: 'Build the base system and boot it',
+    where: 'Host',
+    lines: [
+      { in: './bootstrap/04-enter.sh' },
+      { in: "./bootstrap/04-enter.sh bash -c 'cd /kiln && kiln build-all --force'" },
+      { in: './bootstrap/06-image.sh run' },
+      { out: '# log in as root, password "kiln"' },
+    ],
+  },
+];
+---
+<Base title="Download" description="Kiln Linux has no published image yet. Build a bootable UEFI disk image yourself with the bootstrap scripts.">
+  <PageHeader title="Download" />
+
+  <div class="wrap">
+    <div class="rounded-sm border border-rule-2 border-l-4 border-l-accent bg-well px-6 py-6 sm:px-8">
+      <p class="font-mono text-xs uppercase tracking-wider text-accent">Not released yet</p>
+      <p class="mt-2 text-2xl text-heading">There’s no Kiln image to download yet.</p>
+      <p class="mt-3 max-w-[46rem]">
+        Kiln boots on x86_64 in QEMU from a UEFI disk image and has a text installer, but no published image or live
+        ISO to run it from. Until then, build it yourself from source.
+      </p>
+      <div class="mt-6 grid gap-6 text-sm sm:grid-cols-2">
+        <div>
+          <h2 class="label">Works today</h2>
+          <ul class="mt-2 list-disc space-y-1 pl-5">
+            <li>UEFI boot through GRUB, in QEMU</li>
+            <li>Networking over DHCP</li>
+            <li><code>kiln-installer</code>, a text-mode installer</li>
+            <li>Base packages from the official repository</li>
+          </ul>
+        </div>
+        <div>
+          <h2 class="label">Coming next</h2>
+          <ul class="mt-2 list-disc space-y-1 pl-5">
+            {systemMissing.map((m) => <li>{m[0].toUpperCase() + m.slice(1)}</li>)}
+          </ul>
+        </div>
+      </div>
+      <p class="mt-6 text-sm">
+        <a href={`${DOCS}/status/`} class="link">Full status</a>
+        <span class="text-mute" aria-hidden="true"> · </span>
+        <a href={repo} class="link">Source on GitHub</a>
+      </p>
+    </div>
+  </div>
+
+  <Section title="Build it yourself" id="build" lead="You need an x86_64 Linux host with Git, Rust, Cargo, a C compiler, static glibc development libraries and podman.">
+    <ol class="max-w-[52rem] space-y-8">
+      {steps.map((s, i) => (
+        <li class="grid gap-3 sm:grid-cols-[2.5rem_1fr]">
+          <span class="font-mono text-2xl text-accent" aria-hidden="true">{i + 1}</span>
+          <div class="min-w-0">
+            <h3 class="text-lg">{s.title}</h3>
+            <CodeBlock class="mt-2" caption={s.where} lines={s.lines} />
+          </div>
+        </li>
+      ))}
+    </ol>
+    <p class="mt-8 max-w-[46rem] text-sm">
+      Keep Cargo’s target directory at <code>kiln/target</code>. <code>06-image.sh</code> also needs e2fsprogs,
+      dosfstools, mtools, util-linux and QEMU with its bundled OVMF firmware on the host. The
+      <a href={`${DOCS}/development/`} class="link">development guide</a> explains each step.
+    </p>
+  </Section>
+</Base>

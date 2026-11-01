@@ -1,0 +1,10 @@
+// Static site on Cloudflare Workers: no Worker script, assets only.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "kilnlinux",
+  "compatibility_date": "2026-10-31",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}

@@ -1,0 +1,13 @@
+---
+// A page section: a heading with a rule under it, then the content.
+interface Props { title: string; lead?: string; id?: string }
+const { title, lead, id } = Astro.props;
+const headingId = id ?? title.toLowerCase().replace(/\W+/g, '-');
+---
+<section aria-labelledby={headingId} class="wrap pt-10">
+  <h2 id={headingId} class="border-b border-rule pb-2 text-3xl">{title}</h2>
+  <div class="mt-5 min-w-0">
+    {lead && <p class="mb-5 max-w-[46rem]">{lead}</p>}
+    <slot />
+  </div>
+</section>

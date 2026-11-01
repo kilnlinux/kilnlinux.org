@@ -1,0 +1,17 @@
+---
+// The Kiln triangle mark (branding/mark-triangle*.svg), drawn in currentColor.
+interface Props { size?: number; class?: string }
+const { size = 28, class: cls } = Astro.props;
+const id = `kiln-mark-${Math.random().toString(36).slice(2, 8)}`;
+---
+<svg viewBox="8 8 112 108" width={size} height={size * 108 / 112} class={cls} aria-hidden="true">
+  <defs>
+    <mask id={id}>
+      <rect width="128" height="128" fill="#fff" />
+      <g transform="rotate(-14 64 64)" fill="#000">
+        <rect x="-20" y="54" width="170" height="9" /><rect x="-20" y="80" width="170" height="9" />
+      </g>
+    </mask>
+  </defs>
+  <path d="M64 8 L120 116 H8 Z" fill="currentColor" mask={`url(#${id})`} />
+</svg>

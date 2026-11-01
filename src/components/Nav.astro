@@ -1,0 +1,42 @@
+---
+import { DOCS } from '../data/site';
+import { repo } from '../data/kiln';
+import Wordmark from './Wordmark.astro';
+
+const site = [
+  { href: '/', label: 'Home' },
+  { href: '/download', label: 'Download' },
+  { href: '/packages', label: 'Packages' },
+  { href: '/about', label: 'About' },
+];
+const docs = [
+  { href: `${DOCS}/`, label: 'Documentation' },
+  { href: `${DOCS}/status/`, label: 'Status' },
+  { href: repo, label: 'GitHub' },
+];
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const current = (href: string) => (href === '/' ? path === '/' : path === href || path.startsWith(href + '/'));
+const item = 'block px-4 py-3.5 text-white no-underline hover:bg-black/60 hover:text-white aria-[current=page]:bg-black/25';
+---
+<header class="sticky top-0 z-40 bg-accent text-white">
+  <nav class="wrap flex flex-wrap items-center sm:flex-nowrap" aria-label="Main">
+    <a href="/" class="mr-4 py-3 text-white hover:text-white" aria-label="Kiln Linux, home"><Wordmark /></a>
+
+    <ul class="hidden flex-1 sm:flex">
+      {site.map(({ href, label }) => <li><a href={href} class={item} aria-current={current(href) ? 'page' : undefined}>{label}</a></li>)}
+    </ul>
+    <ul class="hidden sm:flex">
+      {docs.map(({ href, label }) => <li><a href={href} class={item}>{label}</a></li>)}
+    </ul>
+
+    <!-- No-JS mobile menu. -->
+    <details class="ml-auto sm:hidden">
+      <summary class="cursor-pointer list-none rounded-sm border border-white/50 px-3 py-1 text-sm [&::-webkit-details-marker]:hidden">Menu</summary>
+      <ul class="absolute inset-x-0 top-full border-t border-white/20 bg-accent">
+        {[...site, ...docs].map(({ href, label }) => (
+          <li><a href={href} class:list={[item, 'wrap']} aria-current={current(href) ? 'page' : undefined}>{label}</a></li>
+        ))}
+      </ul>
+    </details>
+  </nav>
+</header>

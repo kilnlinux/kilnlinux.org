@@ -1,0 +1,75 @@
+---
+import { DOCS } from '../data/site';
+import Base from '../layouts/Base.astro';
+import PageHeader from '../components/PageHeader.astro';
+import { kilnVersion, toolchain } from '../data/kiln';
+
+const glibc = toolchain.find((t) => t.name === 'glibc')!.version;
+const facts = [
+  ['C library', `glibc ${glibc}`],
+  ['Init', 'runit'],
+  ['Packages', `kiln ${kilnVersion}`],
+  ['Format', '.kpkg, zstd-compressed tar'],
+  ['Filesystem', '/bin, /lib, /sbin link into /usr'],
+  ['Build host', 'Debian stable container'],
+  ['License', 'MIT'],
+];
+---
+<Base title="About" description="The goals, design and development of Kiln Linux, an independent Linux distribution built from source.">
+  <PageHeader
+    title="About Kiln Linux"
+    lede="Kiln builds a Linux system from source, with no parent distribution. The goal: every file on the system comes from a recipe, and Kiln can rebuild itself."
+  />
+
+  <div class="wrap">
+    <div class="grid gap-y-10 pt-4 md:grid-cols-12 md:gap-x-10">
+      <aside class="md:col-span-3 md:row-start-1" aria-labelledby="facts">
+        <h2 id="facts" class="text-sm font-medium text-heading">At a glance</h2>
+        <dl class="mt-4 space-y-3 text-sm">
+          {facts.map(([k, v]) => <div><dt class="text-mute">{k}</dt><dd class="text-heading">{v}</dd></div>)}
+        </dl>
+      </aside>
+
+      <article class="prose-k md:col-span-9 md:row-start-1 [&>h2:first-child]:mt-0">
+        <h2>Goals</h2>
+        <p>
+          Kiln starts from source tarballs. It bootstraps a cross toolchain and temporary system the way Linux From
+          Scratch does, then rebuilds every package from a recipe with <code>kiln build</code>, so <code>kiln</code> tracks every file
+          on the system. Next come a live ISO for the installer, BIOS boot and a desktop.
+        </p>
+
+        <h2>Design</h2>
+        <p>
+          <strong>Recipes are plain shell.</strong> A recipe sets a name, version, release, source URL and sha256,
+          and can override <code>build</code> and <code>package</code>. kiln downloads the source, checks the
+          checksum, builds it and packs the result.
+        </p>
+        <p>
+          <strong>Every package carries a manifest.</strong> A <code>.kpkg</code> starts with
+          <code>.KILN/meta.toml</code> and <code>.KILN/manifest</code>, which lists every path with a sha256 for
+          each file. kiln records installed packages under <code>/var/lib/kiln/installed/</code>.
+        </p>
+        <p>
+          <strong>kiln won’t overwrite what it doesn’t own.</strong> It refuses files another package owns, and files
+          no package owns unless you pass <code>--force</code>. It renames each file into place, so a running program
+          never sees half a file. Upgrades delete the files a new version dropped.
+        </p>
+
+        <h2>Development</h2>
+        <p>
+          Kiln builds in a fixed Debian stable container as an unprivileged user, so nothing from your host leaks in.
+          Toolchain versions follow LFS 12.2. Every kiln command takes <code>--root</code>, and the bootstrap uses it
+          to install packages into the new root before Kiln can run on its own.
+        </p>
+        <p>Kiln boots in QEMU from a UEFI disk image. The <a href={`${DOCS}/status/`}>status page</a> lists what works.</p>
+
+        <h2>Contributing</h2>
+        <p>
+          You can help with new recipes, a check of the bootstrap scripts and checksums against the LFS book, or the
+          part of kiln still to write: package signatures.
+          Start with the <a href={`${DOCS}/contributing/`}>contributing guide</a>.
+        </p>
+      </article>
+    </div>
+  </div>
+</Base>

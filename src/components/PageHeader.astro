@@ -1,0 +1,8 @@
+---
+interface Props { title: string; lede?: string }
+const { title, lede } = Astro.props;
+---
+<header class="wrap pt-10 pb-6">
+  <h1 class="border-b border-rule pb-3 text-4xl">{title}</h1>
+  {lede && <p class="mt-4 max-w-[46rem] text-lg">{lede}</p>}
+</header>

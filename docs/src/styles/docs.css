@@ -1,0 +1,53 @@
+/* Starlight, restyled with the Kiln tokens. Plain CSS: the docs don't use Tailwind classes. */
+@import '@fontsource-variable/ibm-plex-sans';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+
+/* Starlight's light theme: "white" is the darkest text, "black" the page. */
+:root,
+:root[data-theme='light'] {
+  --sl-font: 'IBM Plex Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --sl-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --sl-color-white: #111111;
+  --sl-color-gray-1: #33302c;
+  --sl-color-gray-2: #4a4641;
+  --sl-color-gray-3: #6b665f;
+  --sl-color-gray-4: #9a958d;
+  --sl-color-gray-5: #e3e0db;
+  --sl-color-gray-6: #f6f4f1;
+  --sl-color-gray-7: #fbfaf8;
+  --sl-color-black: #ffffff;
+  --sl-color-bg: #ffffff;
+  --sl-color-bg-nav: #a4471f;
+  --sl-color-bg-sidebar: #ffffff;
+  --sl-color-bg-inline-code: #f6f4f1;
+  --sl-color-hairline: #e3e0db;
+  --sl-color-hairline-light: #e3e0db;
+  --sl-color-hairline-shade: #c9c4bc;
+  --sl-color-accent-low: #f7e6dd;
+  --sl-color-accent: #a4471f;
+  --sl-color-accent-high: #7f3415;
+  --sl-color-text-accent: #a4471f;
+}
+
+/* Brick header bar, as on kilnlinux.org. */
+.header { border-bottom: 0; }
+.site-title { color: #fff; font-weight: 600; font-size: 1.25rem; }
+.site-title img { height: 1.125rem; width: auto; }
+.header site-search button { background: rgb(255 255 255 / 0.12); border-color: rgb(255 255 255 / 0.4); color: #fff; }
+.header site-search button:hover { border-color: #fff; color: #fff; }
+.header site-search kbd { background: transparent; color: rgb(255 255 255 / 0.8); }
+.header .sl-flex button[aria-label] { color: #fff; }
+
+.sl-markdown-content :is(h1, h2, h3) { font-weight: 500; }
+h1#_top { font-weight: 500; }
+.sl-markdown-content a:hover { color: var(--sl-color-white); }
+.sl-markdown-content td:first-child code { white-space: nowrap; }
+.sidebar-content a[aria-current='page'] {
+  background: var(--sl-color-accent-low); color: var(--sl-color-accent-high); font-weight: 600;
+}
+.expressive-code { --ec-brdRad: 4px; }
+/* No social links or theme picker, so drop the divider Starlight puts before them. */
+.header .social-icons::after { display: none; }
+mobile-starlight-toc nav { background: var(--sl-color-bg); border-bottom: 1px solid var(--sl-color-hairline); }

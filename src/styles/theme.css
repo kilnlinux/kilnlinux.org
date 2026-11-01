@@ -1,0 +1,22 @@
+/* Kiln design tokens. Light, plain and link-coloured, in the spirit of a classic distro homepage. */
+@theme {
+  --font-sans: 'IBM Plex Sans Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  --color-page: #ffffff;       /* page */
+  --color-well: #f6f4f1;       /* code, callouts */
+  --color-rule: #e3e0db;       /* hairlines */
+  --color-rule-2: #c9c4bc;     /* stronger lines */
+  --color-mute: #6b665f;       /* secondary text */
+  --color-fg: #33302c;         /* body text */
+  --color-heading: #111111;    /* headings */
+
+  /* Brand: kiln brick. The navbar background and link colour. */
+  --color-accent: #a4471f;
+  --color-accent-2: #7f3415;   /* hover on the navbar */
+
+  --radius-sm: 4px;
+
+  --text-code: 0.875rem;
+  --text-code--line-height: 1.6;
+}

@@ -1,0 +1,22 @@
+---
+// Code with a caption. Pass `lines` for a shell transcript, or `code` for a file (shown with line numbers).
+export type Line = { in: string } | { out: string };
+interface Props { caption?: string; note?: string; lines?: Line[]; code?: string; class?: string }
+const { caption, note, lines, code, class: cls } = Astro.props;
+---
+<figure class:list={['rounded-sm border border-rule-2 bg-well', cls]}>
+  {caption && (
+    <figcaption class="flex items-baseline justify-between gap-4 border-b border-rule px-4 py-2 font-mono text-xs">
+      <span class="text-heading">{caption}</span>
+      {note && <span class="text-mute">{note}</span>}
+    </figcaption>
+  )}
+  <pre class="overflow-x-auto px-4 py-4 font-mono text-code"><code>{
+    lines
+      ? lines.map((l) => 'in' in l
+          ? <span class="block text-heading"><span class="select-none text-mute" aria-hidden="true">$ </span>{l.in}</span>
+          : <span class="block text-mute">{l.out}</span>)
+      : code!.split('\n').map((l, i) =>
+          <span class="block"><span class="mr-5 inline-block w-5 text-right text-mute select-none" aria-hidden="true">{i + 1}</span><span class:list={[l.startsWith('#') ? 'text-mute' : 'text-heading']}>{l}</span></span>)
+  }</code></pre>
+</figure>

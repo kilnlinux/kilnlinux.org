@@ -1,0 +1,146 @@
+---
+import { DOCS } from '../data/site';
+import Base from '../layouts/Base.astro';
+import Logo from '../components/Logo.astro';
+import { commands, grubVersion, kilnVersion, recipes, repo, runitVersion, systemMissing, toolchain } from '../data/kiln';
+
+const v = (name: string) => toolchain.find((t) => t.name === name)!.version;
+
+// Recent commits, fetched when the site builds. If GitHub is unreachable the column links to the history instead.
+// shortcut: refreshes only on rebuild, so redeploy (or add a scheduled build) to keep it current.
+type Commit = { sha: string; commit: { message: string } };
+let commits: Commit[] = [];
+try {
+  const res = await fetch('https://api.github.com/repos/kilnlinux/Kiln/commits?per_page=10', {
+    headers: { Accept: 'application/vnd.github+json' },
+  });
+  if (res.ok) commits = await res.json();
+} catch {}
+
+const featured = ['linux', 'glibc', 'gcc', 'runit', 'grub', 'bash', 'coreutils', 'openssl', 'python', 'vim', 'dhcpcd']
+  .map((n) => recipes.find((r) => r.name === n))
+  .filter((r) => r !== undefined);
+
+const gh = (path: string) => `${repo}/tree/main/${path}`;
+---
+<Base>
+  <section class="wrap grid gap-x-8 pt-8 md:grid-cols-12" aria-labelledby="title">
+    <div class="flex justify-center py-4 text-accent md:col-span-3 md:py-2">
+      <Logo size={140} class="h-auto w-24 md:w-[140px]" />
+    </div>
+    <div class="space-y-3 md:col-span-9">
+      <h1 id="title" class="text-4xl">The Kiln Linux distribution</h1>
+      <p>
+        Kiln is an independent Linux distribution, built from source with no parent distro underneath. Every package
+        on the system comes from a <a href={gh('recipes')}>recipe</a> in the Kiln tree, and <code>kiln</code>, its own
+        package manager written in Rust, builds, installs and tracks it.
+      </p>
+      <p>
+        Kiln runs on x86_64. It boots in QEMU from a UEFI disk image to a login prompt, gets an address over DHCP and
+        shuts down cleanly. It doesn’t have {systemMissing.join(', ').replace(/, ([^,]*)$/, ' or $1')} yet, so you
+        <a href={`${DOCS}/development/`}>build it yourself</a>.
+      </p>
+      <p>
+        The source code, recipes and bootstrap scripts are on <a href={repo}>GitHub</a>. Follow the
+        <a href={`${repo}/commits/main`}>commit history</a> to see what changed.
+      </p>
+      <p>
+        Read the <a href={`${DOCS}/`}>documentation</a> to learn how Kiln fits together. To help, write recipes or
+        improve the docs: start with the <a href={`${DOCS}/contributing/`}>contributing guide</a>.
+      </p>
+    </div>
+  </section>
+
+  <hr class="wrap mt-8 border-rule" />
+
+  <section class="wrap grid gap-x-8 gap-y-8 pt-8 sm:grid-cols-2 lg:grid-cols-3 [&_p+p]:mt-3 [&_h2+p]:mt-2" aria-label="Features">
+    <div>
+      <h2 class="text-2xl">Independent</h2>
+      <p>Kiln is built from upstream source. It isn’t a respin of another distribution and doesn’t borrow its packages.</p>
+      <p>
+        The bootstrap follows <em>Linux From Scratch 12.2</em> to build a cross toolchain. Then kiln rebuilds every
+        package from a recipe, so the whole system is made of packages.
+      </p>
+    </div>
+    <div>
+      <h2 class="text-2xl">Shell recipes</h2>
+      <p>
+        Each package is a short shell file: a name, version, source URL and sha256, with optional
+        <code>build</code> and <code>package</code> functions. <a href="/packages">{recipes.length} recipes</a> make up
+        the base system.
+      </p>
+      <p>
+        A recipe can define <code>post_install</code>, which runs on the installed system after each install or
+        upgrade. Read <a href={`${DOCS}/recipes/`}>writing recipes</a>.
+      </p>
+    </div>
+    <div>
+      <h2 class="text-2xl">runit</h2>
+      <p>Kiln uses <a href="http://smarden.org/runit/">runit</a> {runitVersion} as its init system and service supervisor, with eudev for devices.</p>
+      <p>
+        runit starts the system in three short stages and supervises each service. <code>dhcpcd</code> ships with a
+        runit service, so a fresh system gets an address on boot.
+      </p>
+    </div>
+    <div>
+      <h2 class="text-2xl">Base system</h2>
+      <p>Kiln is built on the GNU C library, glibc {v('glibc')}, compiled with GCC {v('GCC')} and binutils {v('binutils')}.</p>
+      <p>
+        It boots through UEFI with GRUB {grubVersion} into Linux {v('Linux')}, with no initramfs. <code>/bin</code>,
+        <code>/lib</code> and <code>/sbin</code> link into <code>/usr</code>.
+      </p>
+    </div>
+    <div>
+      <h2 class="text-2xl">kiln</h2>
+      <p>
+        <a href={gh('kiln')}>kiln</a> {kilnVersion} is the native package manager, written from scratch in Rust. It
+        installs packages by name from a repository, with their dependencies, or from local <em>.kpkg</em> files.
+      </p>
+      <p>
+        kiln refuses to overwrite files another package owns, and renames each file into place, so running programs
+        never see a half-written file. See <a href={`${DOCS}/package-management/`}>package management</a>.
+      </p>
+    </div>
+    <div>
+      <h2 class="text-2xl">Clean builds</h2>
+      <p>Builds run in a fixed <a href={gh('Containerfile').replace('/tree/', '/blob/')}>container</a> as an unprivileged user, so nothing from your host system leaks in.</p>
+      <p>
+        <code>kiln build-all</code> builds the whole system in order, and skips what’s already installed, so a rerun
+        after a failure picks up where it stopped.
+      </p>
+    </div>
+  </section>
+
+  <hr class="wrap mt-10 border-rule" />
+
+  <section class="wrap grid gap-x-8 gap-y-10 pt-8 lg:grid-cols-3" aria-label="Activity">
+    <div>
+      <h2 class="flex items-center gap-2 text-2xl">
+        Recent commits
+        <a href={`${repo}/commits/main.atom`} class="inline-flex rounded-sm bg-accent p-1 text-white hover:bg-heading hover:text-white" aria-label="Commits feed (Atom)">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><circle cx="3" cy="13" r="2" /><path d="M1 6.5v2.2A6.3 6.3 0 0 1 7.3 15h2.2A8.5 8.5 0 0 0 1 6.5Zm0-4.5v2.2A10.8 10.8 0 0 1 11.8 15H14A13 13 0 0 0 1 2Z" /></svg>
+        </a>
+      </h2>
+      {commits.length > 0 ? (
+        <ul class="mt-3 list-disc space-y-1 pl-5 text-sm marker:text-mute">
+          {commits.map((c) => <li><a href={`${repo}/commit/${c.sha}`}>{c.commit.message.split('\n')[0]}</a></li>)}
+        </ul>
+      ) : (
+        <p class="mt-3 text-sm">See the <a href={`${repo}/commits/main`}>commit history on GitHub</a>.</p>
+      )}
+    </div>
+    <div>
+      <h2 class="text-2xl">Packages</h2>
+      <ul class="mt-3 list-disc space-y-1 pl-5 text-sm marker:text-mute">
+        {featured.map((r) => <li><a href={gh(`recipes/${r.name}/template`).replace('/tree/', '/blob/')}>{r.name}</a> <span class="text-mute">{r.version}</span></li>)}
+        <li><a href="/packages">All {recipes.length} packages</a></li>
+      </ul>
+    </div>
+    <div>
+      <h2 class="text-2xl">kiln commands</h2>
+      <ul class="mt-3 list-disc space-y-1 pl-5 text-sm marker:text-mute">
+        {commands.map((c) => <li><code>kiln {c.name}</code> <span class="text-mute">{c.help.replace(/\.$/, '').toLowerCase()}</span></li>)}
+      </ul>
+    </div>
+  </section>
+</Base>
