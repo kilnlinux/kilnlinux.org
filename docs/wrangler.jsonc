@@ -3,6 +3,8 @@
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "kilnlinux-docs",
   "compatibility_date": "2026-10-31",
+  // wrangler deploy runs this first, so a deploy never ships a missing or stale dist/.
+  "build": { "command": "npm run build" },
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page"

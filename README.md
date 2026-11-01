@@ -86,7 +86,7 @@ Then attach the domains in the Cloudflare dashboard, under Workers & Pages > the
 
 The `kilnlinux.org` zone must be on the same Cloudflare account. Cloudflare creates the DNS records for custom domains.
 
-To deploy on push, connect the Git repository to each Worker under Settings, then Build. Use root directory `/` with `npm run build` for `kilnlinux`, and root directory `docs` with `npm run build` for `kilnlinux-docs`. Both use `npx wrangler deploy` as the deploy command.
+To deploy on push, connect the Git repository to each Worker under Settings, then Build. Use root directory `/` with `npm run build` for `kilnlinux`, and root directory `docs` with `npm run build` for `kilnlinux-docs`. Both use `npx wrangler deploy` as the deploy command. The build command can stay empty: each `wrangler.jsonc` runs `npm run build` before deploying.
 
 A Cloudflare redirect rule sends `search.kilnlinux.org/search?q=…` to
 `https://kilnlinux.org/packages?q=…`. No Worker serves that host.
