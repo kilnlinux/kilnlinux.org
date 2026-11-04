@@ -15,11 +15,11 @@ On 2026-11-03, on an x86_64 Arch Linux host:
 - The installed system booted through systemd-boot. The user could log in, fastfetch showed the Kiln logo and `OS: Kiln Linux`, `kiln list` showed the core and twmx profiles, and `systemctl --failed` listed nothing. `startx` started twmx, and Super+Return opened xterm in Kiln's colors.
 - `kiln apply` and `kiln remove --purge` ran against real pacman in a test root. The purge removed what kiln had installed and kept a package installed by hand. That test predates kiln's switch from `pacman -Rs` to `pacman -R`, which keeps dependencies installed.
 - A user installed Kiln on a VM through the interactive menus, with ext4 and twmx. The install finished, the system booted, and the login worked. Two things showed up and are fixed in the installer: kernel messages drew over the progress box, and the desktop didn't start on login, so the installer now adds the tty1 autostart lines.
+- A reinstall from the updated ISO confirmed the autostart: logging in on tty1 starts twmx.
 - An earlier manual install on a VM reached the installer's checks, which caught a real bug: a boot entry for a fallback initramfs that current Arch no longer builds. The installer reported failure instead of success, and the entry no longer exists.
 
 ## Written but not yet tried
 
-- Starting the desktop on a tty1 login. The installer gained this after the tests above; until someone tries it, run `startx` by hand if the desktop doesn't start.
 - Manual partitioning with cfdisk, btrfs, and setting a root password.
 - The six desktops other than twmx: i3, Sway, Hyprland, XFCE, KDE Plasma and GNOME. Their package lists pass `make test`, which checks that every package exists in the repositories, but nobody has installed them in a VM.
 - The installer's failure path under real faults, such as losing the network during `pacstrap`.
