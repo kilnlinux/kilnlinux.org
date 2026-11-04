@@ -16,11 +16,12 @@ On 2026-11-03, on an x86_64 Arch Linux host:
 - `kiln apply` and `kiln remove --purge` ran against real pacman in a test root. The purge removed what kiln had installed and kept a package installed by hand. That test predates kiln's switch from `pacman -Rs` to `pacman -R`, which keeps dependencies installed.
 - A user installed Kiln on a VM through the interactive menus, with ext4 and twmx. The install finished, the system booted, and the login worked. Two things showed up and are fixed in the installer: kernel messages drew over the progress box, and the desktop didn't start on login, so the installer now adds the tty1 autostart lines.
 - A reinstall from the updated ISO confirmed the autostart: logging in on tty1 starts twmx.
+- Manual partitioning works: the user partitioned a VM disk in cfdisk (GPT, a 1 GiB EFI System partition, the rest Linux filesystem) and picked the EFI and root partitions in the installer.
 - An earlier manual install on a VM reached the installer's checks, which caught a real bug: a boot entry for a fallback initramfs that current Arch no longer builds. The installer reported failure instead of success, and the entry no longer exists.
 
 ## Written but not yet tried
 
-- Manual partitioning with cfdisk, btrfs, and setting a root password.
+- btrfs, and setting a root password.
 - The six desktops other than twmx: i3, Sway, Hyprland, XFCE, KDE Plasma and GNOME. Their package lists pass `make test`, which checks that every package exists in the repositories, but nobody has installed them in a VM.
 - The installer's failure path under real faults, such as losing the network during `pacstrap`.
 - Keeping Kiln's os-release through a `pacman -Syu` that upgrades the `filesystem` package.
