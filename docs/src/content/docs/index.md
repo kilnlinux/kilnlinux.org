@@ -22,7 +22,7 @@ The screenshot comes from a test install in QEMU with the default twmx desktop. 
 An installed Kiln system is an Arch system. The [Arch wiki](https://wiki.archlinux.org/) applies to it, and `sudo pacman -Syu` updates it.
 
 :::caution[Early project]
-Kiln has no published ISO yet. You build it yourself from [the repository](https://github.com/kilnlinux/Kiln-Linux). One install path has been tested end to end in QEMU: UEFI, erase the disk, ext4, twmx. [Status](./status/) lists what has and hasn't been tried.
+Kiln has no published ISO yet. You build it yourself from [the repository](https://github.com/kilnlinux/Kiln-Linux). Installs have been tested on UEFI virtual machines with ext4 and twmx, both unattended and through the installer's menus. [Status](./status/) lists what has and hasn't been tried.
 :::
 
 ## Where to go
