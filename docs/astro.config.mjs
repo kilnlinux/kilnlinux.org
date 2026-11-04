@@ -12,7 +12,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'Kiln Linux',
-      description: 'Documentation for Kiln Linux, an independent Linux distribution built from source.',
+      description: 'Documentation for Kiln Linux, a minimal distribution based on Arch Linux.',
       logo: { src: './src/assets/mark.svg', alt: 'Kiln Linux' },
       favicon: '/favicon.svg',
       expressiveCode: {
@@ -35,8 +35,7 @@ export default defineConfig({
       ],
       sidebar: [
         { label: 'Start here', items: [{ label: 'Overview', link: '/' }, 'status'] },
-        { label: 'Using Kiln', items: ['installation', 'configuration', 'package-management', 'troubleshooting'] },
-        { label: 'Reference', items: ['kpkg-format', 'recipes'] },
+        { label: 'Using Kiln', items: ['installation', 'desktops', 'configuration', 'package-management', 'troubleshooting'] },
         { label: 'Contributing', items: ['contributing', 'development'] },
         { label: 'kilnlinux.org', link: dev ? 'http://localhost:4321/' : 'https://kilnlinux.org' },
       ],

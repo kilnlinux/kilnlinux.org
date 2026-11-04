@@ -1,36 +1,45 @@
 ---
 title: Status and roadmap
-description: What works in Kiln Linux today and the remaining work toward releases and a desktop.
+description: What works in Kiln Linux today, what nobody has tried yet, and what's missing.
 ---
 
-Kiln boots on x86_64 in QEMU from a UEFI disk image through GRUB, reaches a login
-prompt, gets an address over DHCP and shuts down cleanly. It uses runit and eudev.
+Kiln Linux is young. This page separates what someone has run from what only exists in code. The test dates refer to the repository at that time.
 
-## Build and packages
+## Tested and working
 
-The bootstrap builds a cross toolchain and temporary system following Linux From
-Scratch 12.2. `kiln build-all` then builds and installs the base system from recipes
-inside Kiln. See [Development](../development/) for the sequence.
+On 2026-11-03, on an x86_64 Arch Linux host:
 
-The package manager can build, fetch, install, upgrade, remove and query packages.
-It checks payloads against their manifests and keeps changes you made under `/etc`.
-The base system's 77 packages are published in the official repository, so
-`kiln install` can fetch them by name with their dependencies.
+- `make iso` built `out/kilnlinux-YYYY.MM.DD-x86_64.iso` (1.1 GiB) without root.
+- The ISO booted in QEMU on UEFI, through the systemd-boot menu, and on BIOS, through the syslinux menu. Both reached the live system's welcome screen with root logged in.
+- `make e2e` ran a full unattended install in QEMU: UEFI, erase the disk, ext4, twmx. All ten of the installer's checks passed: kernel, initramfs, systemd-boot, the fallback EFI loader, the root UUID in the boot entry and in fstab, `/boot` in fstab, the user account, os-release, and `kiln doctor`.
+- The installed system booted through systemd-boot. The user could log in, fastfetch showed the Kiln logo and `OS: Kiln Linux`, `kiln list` showed the core and twmx profiles, and `systemctl --failed` listed nothing. `startx` started twmx, and Super+Return opened xterm in Kiln's colors.
+- `kiln apply` and `kiln remove --purge` ran against real pacman in a test root. The purge removed what kiln had installed and kept a package installed by hand. That test predates kiln's switch from `pacman -Rs` to `pacman -R`, which keeps dependencies installed.
+- A manual install by a user on their own VM reached the installer's checks, which caught a real bug: a boot entry for a fallback initramfs that current Arch no longer builds. The installer reported failure instead of success, and the entry no longer exists.
 
-Kiln's recipe driver also reads Void Linux templates, and the first batch of
-imported recipes (htop, tmux, curl and others) is being built. Some don't build yet.
+## Written but not yet tried
 
-## Installer
+- The interactive installer menus. The automated test drives the installer with `--config`, which skips the menus.
+- Starting the desktop on a tty1 login. The installer gained this after the test above; until someone tests it, run `startx` by hand.
+- Manual partitioning with cfdisk, btrfs, and setting a root password.
+- The six desktops other than twmx: i3, Sway, Hyprland, XFCE, KDE Plasma and GNOME. Their package lists pass `make test`, which checks that every package exists in the repositories, but nobody has installed them in a VM.
+- The installer's failure path under real faults, such as losing the network during `pacstrap`.
+- Keeping Kiln's os-release through a `pacman -Syu` that upgrades the `filesystem` package.
+- Real hardware.
 
-The base edition has a text-mode installer, `kiln-installer`, in the style of
-Void's. See [Installation](../installation/#kiln-installer).
+## Known limits
 
-## Remaining work
+- No published ISO. You build it.
+- The installer only sets up UEFI systems. The ISO itself boots on BIOS, and you can use it there as a rescue system.
+- The installer has no disk encryption option.
+- twmx comes from a small local repository, `[kiln]`, copied from the ISO. It updates when you install from a newer ISO, not through `pacman -Syu`.
+- The installer copies the `kiln` binary into `/usr/local/bin`; no pacman package tracks it.
+- The installer doesn't set an X11 keyboard layout. On a non-US keyboard, run `sudo localectl set-x11-keymap <layout>` after installing.
+- Kiln hasn't measured boot time yet.
 
-- A live ISO to run the installer from, and published images
-- BIOS boot
-- A desktop: an XFCE edition is planned
-- Package signatures
+## Next
 
-Building packages inside Kiln works; a complete self-hosted rebuild, including
-building the Rust package manager inside Kiln, remains a separate goal.
+1. Test the interactive menus, the tty1 autostart and each desktop in QEMU.
+2. A BIOS install path with GRUB.
+3. Host the `[kiln]` repository online, signed, so twmx updates with `pacman -Syu`.
+4. Package `kiln` for pacman.
+5. A first published ISO.

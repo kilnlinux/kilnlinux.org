@@ -1,22 +1,36 @@
 ---
 title: Kiln Linux documentation
-description: Start here. What Kiln Linux is, what works today, and where the docs are going.
+description: Start here. What Kiln Linux is, what works today, and where to go next.
 ---
 
-Kiln Linux is an independent Linux distribution, built from source with no parent distro.
+Kiln Linux is a small distribution built on Arch Linux. You keep Arch's repositories, pacman and systemd as they are. Kiln adds three things on top: a live ISO with a menu-driven installer, a choice of seven desktops with [twmx](https://github.com/arcbaseproject/twmx) as the default, and `kiln`, a tool that keeps your package sets in TOML files.
 
-- **libc:** glibc
-- **init:** runit
-- **Packages:** `kiln`, Kiln's own package manager, written in Rust
+![fastfetch on a fresh Kiln Linux install: the Kiln logo, 279 packages, 290 MiB of memory in use](../../assets/fastfetch.png)
+
+The screenshot comes from a test install in QEMU with the default twmx desktop. It shows 279 packages and 290 MiB of memory in use at the login console.
+
+| Component | Choice |
+| --- | --- |
+| Base | Arch Linux: official repositories, pacman |
+| Init | systemd |
+| Desktop | twmx on X11 by default; i3, Sway, Hyprland, XFCE, KDE Plasma, GNOME, or none |
+| Login | window managers start when you log in on tty1; XFCE, Plasma and GNOME get a login screen |
+| Network | NetworkManager on the installed system; systemd-networkd and iwd on the live ISO |
+| Audio | PipeWire, optional |
+| Boot | systemd-boot on installed systems (UEFI); the ISO boots on UEFI and BIOS |
+
+An installed Kiln system is an Arch system. The [Arch wiki](https://wiki.archlinux.org/) applies to it, and `sudo pacman -Syu` updates it.
 
 :::caution[Early project]
-Kiln boots in QEMU from a UEFI disk image, gets an address over DHCP and shuts down cleanly. It has a text installer, and its base packages are in a published repository. There is no published image, live ISO or desktop yet. These docs cover the build host, the bootstrap scripts, the `kiln` package manager and the recipe format. Pages marked **Not written yet** are placeholders for later.
+Kiln has no published ISO yet. You build it yourself from [the repository](https://github.com/kilnlinux/Kiln-Linux). One install path has been tested end to end in QEMU: UEFI, erase the disk, ext4, twmx. [Status](./status/) lists what has and hasn't been tried.
 :::
 
 ## Where to go
 
-- [Status and roadmap](./status/): what works and what's next.
-- [Package management](./package-management/): using `kiln`.
-- [Recipes](./recipes/): how packages are defined.
-- [Development](./development/): running the bootstrap in the build container.
-- [Contributing](./contributing/): how to help.
+- [Status and roadmap](./status/): what works, what nobody has tried yet, what's missing.
+- [Installation](./installation/): build the ISO, boot it, run the installer.
+- [Desktops](./desktops/): the seven choices, twmx keys, switching later.
+- [Configuration](./configuration/): services, autostart, keyboard layouts, the boot loader.
+- [Package management](./package-management/): pacman, `kiln` and profiles.
+- [Troubleshooting](./troubleshooting/): known problems and their fixes.
+- [Development](./development/) and [Contributing](./contributing/): how Kiln is built, and how to help.

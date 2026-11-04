@@ -1,130 +1,102 @@
 ---
 title: Development
-description: Building Kiln Linux in the build container.
+description: How Kiln Linux is put together, how it's tested, and how to change it.
 ---
+
+Kiln is Arch Linux plus four pieces: an archiso profile for the live ISO, an installer, a set of package profiles, and the `kiln` tool that applies them. Everything lives in [one repository](https://github.com/kilnlinux/Kiln-Linux).
 
 ## Repository layout
 
 | Path | What it is |
 | --- | --- |
-| `bootstrap/` | Scripts that build the cross toolchain and temporary tools |
-| `recipes/<name>/template` | One recipe per package |
-| `kiln/` | The package manager (Rust) |
-| `branding/` | Logo marks (SVG) |
-| `Containerfile` | Clean, fixed build host |
+| `archiso/kiln/` | the archiso profile, derived from upstream `releng` |
+| `packages/kiln/` | the `kiln` CLI, in Rust |
+| `packages/kiln-install/kiln-install` | the installer, in bash with `dialog` |
+| `packages/twmx/` | the twmx `PKGBUILD` and Kiln's `config.h` |
+| `profiles/` | `core`, seven desktops, `developer`, `audio` |
+| `configs/` | the home skeleton that ends up in `/etc/skel` |
+| `scripts/` | `build.sh`, `test.sh`, `qemu.sh` |
+| `tests/qemu/` | the end-to-end install test |
+| `branding/` | the marks, the boot splash and its source |
 
-## Host requirements
+`make help` lists the targets.
 
-Use an x86_64 Linux host with Git, Podman, Rust and Cargo, a C compiler, and the
-static glibc development libraries needed to link kiln. Install the Rust
-`x86_64-unknown-linux-gnu` target if your toolchain does not include it.
-The image script also needs e2fsprogs, dosfstools, mtools, util-linux and QEMU
-with its bundled OVMF firmware on the host.
+## How `make iso` works
 
-On NixOS, enable Podman with `virtualisation.podman.enable = true;`.
-The bootstrap compiler runs in a Debian stable container as an unprivileged user.
-The host builds kiln and runs the Podman commands that enter Kiln and create its image.
+`scripts/build.sh` leaves `archiso/kiln/` untouched and builds in `build/`:
 
-## Get the source
+1. It checks for the build tools.
+2. `cargo build --release` builds `kiln`.
+3. makepkg builds every `packages/*/PKGBUILD` (today, twmx) and `repo-add` puts the results in `build/repo`, a pacman repository named `[kiln]`.
+4. It copies the profile to `build/profile` and adds `kiln`, `kiln-install`, the profiles, the `[kiln]` repository and the home skeleton to its `airootfs/`.
+5. It runs `mkarchiso` on the copy.
 
-Run on the host:
+archiso runs pacstrap and its file operations inside a user namespace (`unshare --map-auto --map-root-user`). There your user acts as root, and your subordinate IDs stand in for the other users. That's why `make iso` needs no root, and why your own account can't delete the files in `build/work`.
 
-```sh
-git clone https://github.com/kilnlinux/Kiln.git
-cd Kiln
-```
+### The live ISO
 
-Run the remaining commands from this repository directory. If you have already
-cloned it, use your existing checkout.
+The profile in `archiso/kiln/` started as a copy of `/usr/share/archiso/configs/releng`. Kiln changed it:
 
-## Build kiln for the bootstrap
+- cut the package list from 128 to 46: installer tools, disk rescue, network, accessibility and console tools;
+- turned off VM guest agents, ModemManager, cloud-init and sshd, and removed network (PXE) boot;
+- gave root bash instead of zsh;
+- branded the boot menus, `/etc/motd`, the hostname and os-release, and added the BIOS boot splash.
 
-Run on the host. The bootstrap needs a static executable because Kiln does not
-have Rust or the host's shared libraries at this stage. `04-enter.sh` copies the
-executable from the target directory below into `rootfs/usr/bin/kiln`.
+The accessibility pieces stay: the speech boot entry, brltty and espeakup.
 
-```sh
-RUSTFLAGS="-C target-feature=+crt-static" cargo build --release --target x86_64-unknown-linux-gnu --manifest-path kiln/Cargo.toml
-```
+### os-release
 
-Keep Cargo's default target directory, `kiln/target`, for this command. If your
-Cargo configuration overrides it, set `CARGO_TARGET_DIR="$PWD/kiln/target"`.
+`/etc/os-release` links to `/usr/lib/os-release`, which Arch's `filesystem` package owns. A file in `airootfs` at that path would conflict with the package during the build, and an upgrade would restore Arch's file. Kiln uses a pacman hook instead, which copies `/etc/kiln/os-release` over it after every install or upgrade of `filesystem`.
 
-## Build the temporary system
+## The installer
 
-Start the builder from the host:
+`kiln-install` is bash because each step calls an existing tool: `sfdisk`, `mkfs`, `pacstrap`, `genfstab`, `arch-chroot`, `bootctl`. You can read the script top to bottom and see every command it runs.
 
-```sh
-podman build -t kiln-builder .
-podman run --rm -it --userns=keep-id -v "$PWD":/kiln:Z kiln-builder
-```
+- The **main menu** follows Void Linux's installer and the original Kiln Linux's: each item sets one variable, in any order.
+- **`DESKTOPS`**, a table at the top, lists each desktop's profile, its login screen if it has one, and the command a tty1 login runs.
+- **`settings_problem`** checks every setting before Install and prints the first problem.
+- **`install_all`** runs in a subshell with `set -e`, so the first failing command stops it. Its output goes to a progress box and to `/tmp/kiln-install.log`.
+- **`validate`** checks the installed system. A failed check fails the install.
+- **`--config FILE`** sources FILE for the variables and skips the menus.
 
-Inside the builder container:
+systemd-boot ships with systemd, and its whole config is two short files. It only works on UEFI, which is why BIOS installs wait for a GRUB path.
 
-```sh
-./bootstrap/00-host-check.sh
-./bootstrap/01-prepare.sh
-./bootstrap/02-cross-toolchain.sh
-./bootstrap/03-temp-tools.sh
-exit
-```
+The installer applies profiles with `kiln apply` inside the new system, so kiln's records are correct from the first boot and `kiln remove twmx --purge` works right away.
 
-`--userns=keep-id` maps the container's build user to your host user so the files
-it writes belong to you. `exit` returns you to the host; run the next commands there.
+## kiln
 
-## Finish the bootstrap and build packages
+- **pacman is the only package database.** kiln asks pacman with `-T` (is this satisfied), `-Qq`, `-Slq`, and changes the system with `-S --needed` and `-R`. kiln never reads `/var/lib/pacman`.
+- **`pacman -T`** decides what's missing. It is pacman's own dependency check, so packages that provide a name count as installing it.
+- **State** lives in `/var/lib/kiln/state.toml`. kiln writes it after pacman succeeds, with an atomic rename.
+- **No `-Sy`.** Syncing without upgrading is a partial upgrade, and Arch doesn't support those.
+- kiln calls pacman with an argument list and `--` before package names, never through a shell.
+- Its only dependencies are `serde` and `toml`. It parses its arguments by hand.
 
-Run on the host:
-
-```sh
-./bootstrap/04-enter.sh
-./bootstrap/04-enter.sh bash -c 'cd /kiln && kiln build-all --force'
-```
-
-The first command runs `05-chroot-tools.sh` inside Kiln to finish the temporary
-tools. The second builds and installs the recipes in `recipes/ORDER` inside Kiln.
-`build-all` skips packages whose current versions are already installed, so you
-can rerun it after a failure.
-
-## Boot the test image
-
-Run on the host:
-
-```sh
-./bootstrap/06-image.sh run
-```
-
-This creates `kiln.img` and boots it in QEMU using UEFI. Log in as root with the
-password `kiln`. The test system uses runit and gets an address over DHCP.
-There is no live ISO, desktop or BIOS boot support yet.
-
-## Bootstrap scripts
-
-| Script | Does |
+| Module | Job |
 | --- | --- |
-| `00-host-check.sh` | Checks the build host has the tools the LFS book requires |
-| `01-prepare.sh` | Creates `rootfs/` and downloads sources, recording or verifying checksums |
-| `02-cross-toolchain.sh` | Builds the cross toolchain |
-| `03-temp-tools.sh` | Builds the temporary tools |
-| `04-enter.sh` | Runs commands inside Kiln through host Podman; runs `05-chroot-tools.sh` by default |
-| `05-chroot-tools.sh` | Finishes temporary tools inside Kiln |
-| `06-image.sh` | Creates a UEFI disk image; add `run` to boot it in QEMU |
+| `main.rs` | dispatch, exit codes, SIGPIPE |
+| `cli.rs` | argument parsing and help text |
+| `manifest.rs` | TOML parsing, validation, profile search paths |
+| `pacman.rs` | every pacman call; the root check |
+| `plan.rs` | pure planning rules: what to install, what is safe to remove |
+| `apply.rs` | `apply` and `remove` |
+| `state.rs` | `/var/lib/kiln/state.toml` |
+| `commands.rs` | read-only commands, `profile create`, `export` |
+| `ui.rs`, `error.rs` | output colors, the error type |
 
-The target triplet is `$(uname -m)-kiln-linux-gnu`. The root uses merged `/usr`:
-`bin`, `lib` and `sbin` are symlinks into `usr/`.
+To add a package source later, such as a hosted Kiln repository, add an optional field next to `official` in `manifest.rs`, plan it in `plan.rs` and run it in `apply.rs`. Unknown fields are errors today, so an older kiln rejects a manifest it can't honor.
 
-## Toolchain versions
+## Tests
 
-From `bootstrap/config.sh`, following LFS 12.2:
+**`make test`** needs no root and no VM. It runs kiln's unit tests and its integration tests, which run the real binary against a fake `pacman` on `PATH`. It also runs clippy with warnings as errors, `bash -n` on every script (and shellcheck if you have it), and checks every package name in the profiles and the ISO list against the repositories.
 
-| Package | Version |
-| --- | --- |
-| binutils | 2.43.1 |
-| GCC | 14.2.0 |
-| glibc | 2.40 |
-| Linux | 6.10.5 |
-| GMP | 6.3.0 |
-| MPFR | 4.2.1 |
-| MPC | 1.3.1 |
+**`make e2e`** needs QEMU and OVMF. `tests/qemu/run.sh` boots the newest ISO and presses keys through QEMU's monitor to add `script=http://10.0.2.2:8000/test.sh` to the boot entry. The live system downloads that script from a small HTTP server on the host and runs `kiln-install --config tests/qemu/install.cfg`. The test then boots the installed disk, logs in, and saves screenshots to `build/e2e/`.
 
-binutils, GCC and glibc must be versions the book has tested together; update them together.
+## Changing the distribution
+
+- **A package on the live ISO**: add it to `archiso/kiln/packages.x86_64`, then `make test` and `make iso`.
+- **A file on the live ISO**: put it under `archiso/kiln/airootfs/` at its target path. Executables also need an entry in `file_permissions` in `profiledef.sh`.
+- **A package in a profile**: edit `profiles/<name>.toml`.
+- **A package Kiln builds itself**: add `packages/<name>/PKGBUILD`. `make iso` builds it into `[kiln]`, and any profile can list it.
+- **A new desktop in the installer**: add `profiles/<name>.toml` and a line to `DESKTOPS` in `kiln-install`.
+- **Branding**: `branding/README.md` lists where each piece lives.
