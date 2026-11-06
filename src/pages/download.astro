@@ -1,5 +1,4 @@
 ---
-import { DOCS } from '../data/site';
 import Base from '../layouts/Base.astro';
 import PageHeader from '../components/PageHeader.astro';
 import CodeBlock from '../components/CodeBlock.astro';
@@ -7,10 +6,15 @@ import { repo } from '../data/kiln';
 
 // The latest Kiln Linux release, read from GitHub when the site builds. No release, no build:
 // a deploy never ships a download link that is missing or wrong.
+// Unauthenticated calls get 60 an hour per IP, and build machines share IPs: set GITHUB_TOKEN.
+const token = process.env.GITHUB_TOKEN;
 const res = await fetch('https://api.github.com/repos/kilnlinux/Kiln-Linux/releases/latest', {
-  headers: { Accept: 'application/vnd.github+json' },
+  headers: { Accept: 'application/vnd.github+json', ...(token && { Authorization: `Bearer ${token}` }) },
 });
-if (!res.ok) throw new Error(`GitHub latest release: HTTP ${res.status}`);
+if (!res.ok) {
+  const left = res.headers.get('x-ratelimit-remaining');
+  throw new Error(`GitHub latest release: HTTP ${res.status}${left === '0' ? ' (rate limited; set GITHUB_TOKEN)' : ''}: ${await res.text()}`);
+}
 const release: {
   tag_name: string;
   published_at: string;
