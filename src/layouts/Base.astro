@@ -11,9 +11,9 @@ interface Props { title?: string; description?: string; noindex?: boolean; canon
 const {
   title,
   noindex = false,
-  description = 'Kiln Linux is an independent x86_64 Linux distribution built from source, with runit, shell recipes and kiln, its own package manager written in Rust.',
+  description = 'Kiln Linux is a minimal x86_64 distribution based on Arch Linux, with a live ISO, a terminal installer, an optional Sway desktop and kiln, a package profile tool written in Rust.',
 } = Astro.props;
-const fullTitle = title ? `${title} | Kiln Linux` : 'Kiln Linux: an independent distribution, built from source';
+const fullTitle = title ? `${title} | Kiln Linux` : 'Kiln Linux: a minimal distribution based on Arch Linux';
 const pathname = Astro.url.pathname.replace(/\/+$/, '') || '/';
 const canonical = new URL(Astro.props.canonical ?? pathname, Astro.site);
 const image = new URL('/og.png', Astro.site);
@@ -27,7 +27,7 @@ const structuredData = {
       url: home,
       name: 'Kiln Linux',
       alternateName: 'Kiln',
-      description: 'An independent Linux distribution built from source.',
+      description: 'A minimal Linux distribution based on Arch Linux.',
       inLanguage: 'en',
       sameAs: [repo],
     },
@@ -62,7 +62,7 @@ const structuredData = {
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={image} />
-    <meta property="og:image:alt" content="Kiln Linux — an independent distribution, built from source" />
+    <meta property="og:image:alt" content="Kiln Linux — a minimal distribution based on Arch Linux" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -70,7 +70,7 @@ const structuredData = {
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={image} />
-    <meta name="twitter:image:alt" content="Kiln Linux — an independent distribution, built from source" />
+    <meta name="twitter:image:alt" content="Kiln Linux — a minimal distribution based on Arch Linux" />
     {!noindex && <script type="application/ld+json" set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')} />}
   </head>
   <body class="min-h-dvh">

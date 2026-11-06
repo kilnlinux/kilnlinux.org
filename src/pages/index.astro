@@ -2,24 +2,18 @@
 import { DOCS, SEARCH } from '../data/site';
 import Base from '../layouts/Base.astro';
 import Logo from '../components/Logo.astro';
-import { commands, grubVersion, kilnVersion, recipes, repo, runitVersion, systemMissing, toolchain } from '../data/kiln';
-
-const v = (name: string) => toolchain.find((t) => t.name === name)!.version;
+import { commands, kilnVersion, missing, profiles, repo } from '../data/kiln';
 
 // Recent commits, fetched when the site builds. If GitHub is unreachable the column links to the history instead.
 // shortcut: refreshes only on rebuild, so redeploy (or add a scheduled build) to keep it current.
 type Commit = { sha: string; commit: { message: string } };
 let commits: Commit[] = [];
 try {
-  const res = await fetch('https://api.github.com/repos/kilnlinux/Kiln/commits?per_page=10', {
+  const res = await fetch('https://api.github.com/repos/kilnlinux/Kiln-Linux/commits?per_page=10', {
     headers: { Accept: 'application/vnd.github+json' },
   });
   if (res.ok) commits = await res.json();
 } catch {}
-
-const featured = ['linux', 'glibc', 'gcc', 'runit', 'grub', 'bash', 'coreutils', 'openssl', 'python', 'vim', 'dhcpcd']
-  .map((n) => recipes.find((r) => r.name === n))
-  .filter((r) => r !== undefined);
 
 const gh = (path: string) => `${repo}/tree/main/${path}`;
 ---
@@ -31,22 +25,23 @@ const gh = (path: string) => `${repo}/tree/main/${path}`;
     <div class="space-y-3 md:col-span-9">
       <h1 id="title" class="text-4xl">The Kiln Linux distribution</h1>
       <p>
-        Kiln is an independent Linux distribution, built from source with no parent distro underneath. Every package
-        on the system comes from a <a href={gh('recipes')}>recipe</a> in the Kiln tree, and <code>kiln</code>, its own
-        package manager written in Rust, builds, installs and tracks it.
+        Kiln is a minimal distribution based on <a href="https://archlinux.org">Arch Linux</a>. It uses Arch’s
+        repositories, pacman and systemd unchanged, and adds a small live ISO with a terminal installer, an optional
+        Sway desktop, and <code>kiln</code>, a tool that keeps your package sets in readable
+        <a href={SEARCH}>profile</a> files.
       </p>
       <p>
-        Kiln runs on x86_64. It boots in QEMU from a UEFI disk image to a login prompt, gets an address over DHCP and
-        shuts down cleanly. It doesn’t have {systemMissing.join(', ').replace(/, ([^,]*)$/, ' or $1')} yet, so you
-        <a href={`${DOCS}/development/`}>build it yourself</a>.
+        An installed Kiln system is an Arch system: run <code>pacman -Syu</code> to update it, and the
+        <a href="https://wiki.archlinux.org/">Arch wiki</a> applies as is.
       </p>
       <p>
-        The source code, recipes and bootstrap scripts are on <a href={repo}>GitHub</a>. Follow the
+        Kiln runs on x86_64. <a href="/download/">Download the ISO</a>, or
+        <a href={`${DOCS}/development/`}>build it yourself</a> with archiso. The source is on <a href={repo}>GitHub</a>; follow the
         <a href={`${repo}/commits/main`}>commit history</a> to see what changed.
       </p>
       <p>
-        Read the <a href={`${DOCS}/`}>documentation</a> to learn how Kiln fits together. To help, write recipes or
-        improve the docs: start with the <a href={`${DOCS}/contributing/`}>contributing guide</a>.
+        Read the <a href={`${DOCS}/`}>documentation</a> to learn how Kiln fits together, or start with the
+        <a href={`${DOCS}/contributing/`}>contributing guide</a>.
       </p>
     </div>
   </section>
@@ -55,59 +50,55 @@ const gh = (path: string) => `${repo}/tree/main/${path}`;
 
   <section class="wrap grid gap-x-8 gap-y-8 pt-8 sm:grid-cols-2 lg:grid-cols-3 [&_p+p]:mt-3 [&_h2+p]:mt-2" aria-label="Features">
     <div>
-      <h2 class="text-2xl">Independent</h2>
-      <p>Kiln is built from upstream source. It isn’t a respin of another distribution and doesn’t borrow its packages.</p>
+      <h2 class="text-2xl">Arch underneath</h2>
+      <p>Kiln replaces nothing in Arch. Packages come from the official Arch repositories through pacman.</p>
       <p>
-        The bootstrap follows <em>Linux From Scratch 12.2</em> to build a cross toolchain. Then kiln rebuilds every
-        package from a recipe, so the whole system is made of packages.
+        A pacman hook keeps Kiln’s <code>os-release</code> in place when Arch’s <code>filesystem</code> package
+        upgrades. Everything else is a default you can change.
       </p>
     </div>
     <div>
-      <h2 class="text-2xl">Shell recipes</h2>
+      <h2 class="text-2xl">Live ISO</h2>
       <p>
-        Each package is a short shell file: a name, version, source URL and sha256, with optional
-        <code>build</code> and <code>package</code> functions. <a href={SEARCH}>{recipes.length} recipes</a> make up
-        the base system.
+        The ISO is built with <a href="https://gitlab.archlinux.org/archlinux/archiso">archiso</a> from a profile
+        derived from Arch’s <code>releng</code>, cut to about 50 packages. It boots on UEFI and BIOS.
+      </p>
+      <p><code>make iso</code> builds it without root, in a user namespace.</p>
+    </div>
+    <div>
+      <h2 class="text-2xl">Installer</h2>
+      <p>
+        <code>kiln-install</code> is a bash script that asks every question first and changes nothing until you
+        confirm. Erasing a disk needs its name typed back.
       </p>
       <p>
-        A recipe can define <code>post_install</code>, which runs on the installed system after each install or
-        upgrade. Read <a href={`${DOCS}/recipes/`}>writing recipes</a>.
+        It installs with <code>pacstrap</code>, boots with systemd-boot on UEFI, and checks the result before it
+        reports success.
       </p>
     </div>
     <div>
-      <h2 class="text-2xl">runit</h2>
-      <p>Kiln uses <a href="http://smarden.org/runit/">runit</a> {runitVersion} as its init system and service supervisor, with eudev for devices.</p>
+      <h2 class="text-2xl">Profiles</h2>
       <p>
-        runit starts the system in three short stages and supervises each service. <code>dhcpcd</code> ships with a
-        runit service, so a fresh system gets an address on boot.
+        A profile is a named list of packages in a TOML file. Kiln ships four: {profiles.map((p, i) => <>{i > 0 && ', '}<code>{p.name}</code></>)}.
+        They stack, and you can write your own.
       </p>
-    </div>
-    <div>
-      <h2 class="text-2xl">Base system</h2>
-      <p>Kiln is built on the GNU C library, glibc {v('glibc')}, compiled with GCC {v('GCC')} and binutils {v('binutils')}.</p>
-      <p>
-        It boots through UEFI with GRUB {grubVersion} into Linux {v('Linux')}, with no initramfs. <code>/bin</code>,
-        <code>/lib</code> and <code>/sbin</code> link into <code>/usr</code>.
-      </p>
+      <p><a href={SEARCH}>See what each profile installs</a>.</p>
     </div>
     <div>
       <h2 class="text-2xl">kiln</h2>
       <p>
-        <a href={gh('kiln')}>kiln</a> {kilnVersion} is the native package manager, written from scratch in Rust. It
-        installs packages by name from a repository, with their dependencies, or from local <em>.kpkg</em> files.
+        <a href={gh('packages/kiln')}>kiln</a> {kilnVersion}, written in Rust, compares a profile with the system and
+        has pacman install what’s missing. pacman stays the only package database.
       </p>
       <p>
-        kiln refuses to overwrite files another package owns, and renames each file into place, so running programs
-        never see a half-written file. See <a href={`${DOCS}/package-management/`}>package management</a>.
+        <code>kiln remove --purge</code> only uninstalls what kiln itself installed, never a package you added. See
+        <a href={`${DOCS}/package-management/`}>package management</a>.
       </p>
     </div>
     <div>
-      <h2 class="text-2xl">Clean builds</h2>
-      <p>Builds run in a fixed <a href={gh('Containerfile').replace('/tree/', '/blob/')}>container</a> as an unprivileged user, so nothing from your host system leaks in.</p>
-      <p>
-        <code>kiln build-all</code> builds the whole system in order, and skips what’s already installed, so a rerun
-        after a failure picks up where it stopped.
-      </p>
+      <h2 class="text-2xl">Sway desktop</h2>
+      <p>The optional desktop profile is Sway on Wayland, with foot, fuzzel and mako, and PipeWire for audio.</p>
+      <p>There’s no display manager: log in on a TTY and run <code>sway</code>.</p>
     </div>
   </section>
 
@@ -130,16 +121,16 @@ const gh = (path: string) => `${repo}/tree/main/${path}`;
       )}
     </div>
     <div>
-      <h2 class="text-2xl">Packages</h2>
+      <h2 class="text-2xl">Profiles</h2>
       <ul class="mt-3 list-disc space-y-1 pl-5 text-sm marker:text-mute">
-        {featured.map((r) => <li><a href={gh(`recipes/${r.name}/template`).replace('/tree/', '/blob/')}>{r.name}</a> <span class="text-mute">{r.version}</span></li>)}
-        <li><a href={SEARCH}>All {recipes.length} packages</a></li>
+        {profiles.map((p) => <li><a href={`${SEARCH}#${p.name}`}>{p.name}</a> <span class="text-mute">{p.description}</span></li>)}
       </ul>
+      <p class="mt-3 text-sm">Not done yet: {missing.join(', ')}.</p>
     </div>
     <div>
       <h2 class="text-2xl">kiln commands</h2>
       <ul class="mt-3 list-disc space-y-1 pl-5 text-sm marker:text-mute">
-        {commands.map((c) => <li><code>kiln {c.name}</code> <span class="text-mute">{c.help.replace(/\.$/, '').toLowerCase()}</span></li>)}
+        {commands.map((c) => <li><code>kiln {c.name}</code> <span class="text-mute">{c.help.toLowerCase()}</span></li>)}
       </ul>
     </div>
   </section>

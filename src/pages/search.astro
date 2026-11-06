@@ -4,83 +4,37 @@ import Base from '../layouts/Base.astro';
 import PageHeader from '../components/PageHeader.astro';
 import Section from '../components/Section.astro';
 import CodeBlock from '../components/CodeBlock.astro';
-import { kilnMissing, recipes, repo } from '../data/kiln';
+import { archPackage, profiles } from '../data/kiln';
 ---
-<Base title="Packages" canonical="https://search.kilnlinux.org/search" description={`The ${recipes.length} packages in Kiln Linux, each built from a recipe with kiln.`}>
+<Base title="Profiles" canonical="https://search.kilnlinux.org/search" description="The package profiles Kiln Linux ships, and the Arch packages each one installs.">
   <PageHeader
-    title="Packages"
-    lede={`${recipes.length} recipes: the Kiln base system plus packages imported from Void’s templates. The base system is in the official package repository, so kiln can install it by name.`}
+    title="Profiles"
+    lede="Kiln installs packages from the official Arch Linux repositories. A profile is a named list of them; kiln applies it with pacman."
   />
 
   <Section title="Usage">
-    <div class="grid gap-8 lg:grid-cols-2 lg:gap-x-10">
-      <CodeBlock
-        class="min-w-0"
-        caption="Local packages"
-        lines={[
-          { in: 'kiln build recipes/zlib' },
-          { out: '# writes packages/zlib-1.3.1-1.x86_64.kpkg' },
-          { in: 'kiln install packages/zlib-*.kpkg' },
-          { in: 'kiln files zlib' },
-          { in: 'kiln remove zlib' },
-        ]}
-      />
-      <div class="min-w-0">
-        <CodeBlock
-          caption="From a repository"
-          lines={[{ in: 'kiln sync' }, { in: 'kiln search editor' }, { in: 'kiln install vim' }, { in: 'kiln upgrade' }]}
-        />
-        <p class="mt-4 text-sm">
-          Repositories are listed in <code>/etc/kiln/repos</code>. Still to do in kiln: {kilnMissing.join(' and ')}.
-        </p>
-      </div>
-    </div>
-    <p class="mt-6"><a href={`${DOCS}/package-management/`} class="link">Package management docs</a></p>
+    <CodeBlock
+      class="max-w-[46rem]"
+      caption="Installed system"
+      lines={[
+        { in: 'kiln profile list' },
+        { in: 'kiln plan developer' },
+        { out: '# what apply would do; changes nothing' },
+        { in: 'sudo kiln apply developer' },
+        { in: 'sudo kiln remove developer --purge' },
+      ]}
+    />
+    <p class="mt-6">
+      Search every package on <a href="https://archlinux.org/packages/" class="link">archlinux.org</a> or with
+      <code>pacman -Ss</code>. <a href={`${DOCS}/package-management/`} class="link">Package management docs</a>
+    </p>
   </Section>
 
-  <Section title="All packages">
-    <form role="search" class="mb-4 flex flex-wrap items-center gap-3" onsubmit="return false">
-      <label for="pkg-q" class="text-sm">Search packages</label>
-      <input id="pkg-q" name="q" type="search" autocomplete="off" class="w-full max-w-[24rem] border border-rule-2 px-3 py-1.5 font-mono text-sm" />
-      <p id="pkg-count" class="text-sm text-mute" aria-live="polite">{recipes.length} packages</p>
-    </form>
-    <div class="overflow-x-auto">
-      <table class="table">
-        <caption class="sr-only">Kiln Linux packages</caption>
-        <thead><tr><th scope="col">Name</th><th scope="col">Version</th><th scope="col">Summary</th></tr></thead>
-        <tbody>
-          {recipes.map((r) => (
-            <tr data-search={`${r.name} ${r.summary ?? ''}`.toLowerCase()}>
-              <td class="font-mono whitespace-nowrap"><a href={`${repo}/blob/main/recipes/${r.name}/template`} class="link">{r.name}</a></td>
-              <td class="font-mono whitespace-nowrap">{r.version}-{r.release}</td>
-              <td>{r.summary}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  </Section>
+  {profiles.map((p) => (
+    <Section title={p.name} id={p.name} lead={p.description}>
+      <ul class="flex flex-wrap gap-x-6 gap-y-1 font-mono">
+        {p.packages.map((name) => <li><a href={archPackage(name)} class="link">{name}</a></li>)}
+      </ul>
+    </Section>
+  ))}
 </Base>
-
-<script>
-  // Filters the table by name and summary; ?q= makes a search linkable.
-  const input = document.getElementById('pkg-q') as HTMLInputElement;
-  const count = document.getElementById('pkg-count')!;
-  const rows = [...document.querySelectorAll<HTMLTableRowElement>('tr[data-search]')];
-  const filter = () => {
-    const terms = input.value.toLowerCase().split(/\s+/).filter(Boolean);
-    let shown = 0;
-    for (const row of rows) {
-      row.hidden = !terms.every((t) => row.dataset.search!.includes(t));
-      if (!row.hidden) shown++;
-    }
-    count.textContent = `${shown} of ${rows.length} packages`;
-    const url = new URL(location.href);
-    if (input.value) url.searchParams.set('q', input.value);
-    else url.searchParams.delete('q');
-    history.replaceState(null, '', url);
-  };
-  input.value = new URLSearchParams(location.search).get('q') ?? '';
-  input.addEventListener('input', filter);
-  if (input.value) filter();
-</script>

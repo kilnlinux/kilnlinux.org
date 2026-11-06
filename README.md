@@ -12,7 +12,7 @@ The websites for [Kiln Linux](https://kilnlinux.org), hosted on Cloudflare Worke
 - `@astrojs/sitemap` for the project site; Starlight makes the docs sitemap
 - Tailwind CSS v4 for the site pages; the docs are restyled with plain CSS variables
 - Self-hosted IBM Plex Sans (text) and IBM Plex Mono (code), via Fontsource
-- No client-side JavaScript except the package search on `/search` (served at `search.kilnlinux.org/search`), which filters the table and keeps the query in `?q=`. The mobile menu is a `<details>` element.
+- No client-side JavaScript. The mobile menu is a `<details>` element.
 
 ## Develop
 
@@ -42,7 +42,7 @@ A plain, light layout in the style of classic distro homepages such as voidlinux
 | `src/pages/` | `/`, `/download`, `/search`, `/about`, `404` |
 | `src/layouts/Base.astro` | Shared head (SEO, Open Graph, canonical), nav, footer |
 | `src/components/` | `Logo` (triangle mark), `Wordmark`, `Nav`, `Footer`, `PageHeader`, `Section` (title column + content), `CodeBlock` |
-| `src/data/kiln.ts` | Every fact taken from the distro repo: toolchain, roadmap, kiln commands, recipes. Pages read from here. |
+| `src/data/kiln.ts` | Every fact taken from the distro repo: kiln version and commands, profiles, known limits. Pages read from here. |
 | `src/styles/theme.css` | Design tokens: `page`, `well`, `rule`, `mute`, `fg`, `heading`, the brick `accent`, fonts |
 | `src/styles/global.css` | Base styles and shared classes: `wrap` (the one container width), `label`, `link`, `sheet`, `table`, `prose-k` |
 | `src/data/site.ts` | `DOCS`, the docs site URL |
@@ -56,11 +56,10 @@ A plain, light layout in the style of classic distro homepages such as voidlinux
 
 Content comes from the Kiln Linux repository. When it changes, update:
 
-- `src/data/kiln.ts`: toolchain, kiln version and commands, what's not done yet
-- `src/data/recipes.json`: regenerate with `node scripts/recipes.mjs ~/Desktop/KilnLinux` (reads the repo's committed `HEAD`, including recipes imported from Void)
-- The "Works today" list in `src/pages/download.astro`
-- The matching docs pages in `docs/src/content/docs/`: `status.md`, `development.md`, `recipes.md`
-- `package-management.md` when `kiln` gains commands.
+- `src/data/kiln.ts`: kiln version and commands, profiles, known limits
+- The "Works today" list and build steps in `src/pages/download.astro`
+- The matching docs pages in `docs/src/content/docs/`, which follow the distro repo's `README.md` and `docs/`
+- `package-management.md` when `kiln` gains commands or profiles change.
 
 The homepage's "Recent commits" list comes from the GitHub API at build time. Rebuild the site to refresh it.
 
@@ -90,12 +89,12 @@ To deploy on push, connect the Git repository to each Worker under Settings, the
 
 The download page reads the latest [Kiln-Linux release](https://github.com/kilnlinux/Kiln-Linux/releases/latest) when the site builds: the version, the `.iso` asset, the checksum from the `.iso.sha256` asset, and the bullets under `### Tested` and `### Not tested yet` in the release notes. The build fails if the release has no ISO or checksum. `.github/workflows/release-deploy.yml` checks every hour and redeploys when kilnlinux.org doesn't show the latest tag yet. It needs a `CLOUDFLARE_API_TOKEN` repository secret with permission to edit Workers.
 
-`search.kilnlinux.org` is a second custom domain on `kilnlinux-org`. The package page is
+`search.kilnlinux.org` is a second custom domain on `kilnlinux-org`. The profiles page is
 `src/pages/search.astro`, linked as `https://search.kilnlinux.org/search` (`SEARCH` in
 `src/data/site.ts`). `public/_redirects` sends old `/packages?q=…` links there.
 Each `wrangler.jsonc` lists its custom domains under `routes`, so a deploy attaches them.
 
-ISOs and packages will go in R2 once they exist. R2 isn't set up yet.
+ISOs will go in R2 once they exist. R2 isn't set up yet.
 
 ## Search indexing
 

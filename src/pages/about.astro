@@ -2,23 +2,22 @@
 import { DOCS } from '../data/site';
 import Base from '../layouts/Base.astro';
 import PageHeader from '../components/PageHeader.astro';
-import { kilnVersion, toolchain } from '../data/kiln';
+import { kilnVersion } from '../data/kiln';
 
-const glibc = toolchain.find((t) => t.name === 'glibc')!.version;
 const facts = [
-  ['C library', `glibc ${glibc}`],
-  ['Init', 'runit'],
-  ['Packages', `kiln ${kilnVersion}`],
-  ['Format', '.kpkg, zstd-compressed tar'],
-  ['Filesystem', '/bin, /lib, /sbin link into /usr'],
-  ['Build host', 'Debian stable container'],
+  ['Base', 'Arch Linux'],
+  ['Packages', 'pacman, official Arch repositories'],
+  ['Profiles', `kiln ${kilnVersion}`],
+  ['Init', 'systemd'],
+  ['Boot', 'systemd-boot (UEFI)'],
+  ['Desktop', 'Sway on Wayland, optional'],
   ['License', 'MIT'],
 ];
 ---
-<Base title="About" description="The goals, design and development of Kiln Linux, an independent Linux distribution built from source.">
+<Base title="About" description="The goals and design of Kiln Linux, a minimal distribution based on Arch Linux.">
   <PageHeader
     title="About Kiln Linux"
-    lede="Kiln builds a Linux system from source, with no parent distribution. The goal: every file on the system comes from a recipe, and Kiln can rebuild itself."
+    lede="Kiln is Arch Linux plus four things: a live ISO profile, an installer, a set of package profiles, and the kiln tool that applies them."
   />
 
   <div class="wrap">
@@ -33,41 +32,41 @@ const facts = [
       <article class="prose-k md:col-span-9 md:row-start-1 [&>h2:first-child]:mt-0">
         <h2>Goals</h2>
         <p>
-          Kiln starts from source tarballs. It bootstraps a cross toolchain and temporary system the way Linux From
-          Scratch does, then rebuilds every package from a recipe with <code>kiln build</code>, so <code>kiln</code> tracks every file
-          on the system. Next come a live ISO for the installer, BIOS boot and a desktop.
+          A small, readable Arch system you can install in a few minutes. Nothing replaces pacman, systemd or the Arch
+          repositories. An installed Kiln system is an Arch system with a different <code>os-release</code>, some
+          defaults, and <code>kiln</code>.
         </p>
 
         <h2>Design</h2>
         <p>
-          <strong>Recipes are plain shell.</strong> A recipe sets a name, version, release, source URL and sha256,
-          and can override <code>build</code> and <code>package</code>. kiln downloads the source, checks the
-          checksum, builds it and packs the result.
+          <strong>pacman is the only package database.</strong> kiln asks pacman everything and never reads
+          <code>/var/lib/pacman</code> itself. Its own state is one small file, <code>/var/lib/kiln/state.toml</code>,
+          listing active profiles and the packages kiln installed for each.
         </p>
         <p>
-          <strong>Every package carries a manifest.</strong> A <code>.kpkg</code> starts with
-          <code>.KILN/meta.toml</code> and <code>.KILN/manifest</code>, which lists every path with a sha256 for
-          each file. kiln records installed packages under <code>/var/lib/kiln/installed/</code>.
+          <strong>kiln never removes what you installed.</strong> Packages already present when you apply a profile
+          aren’t recorded, so <code>kiln remove --purge</code> can’t touch them.
         </p>
         <p>
-          <strong>kiln won’t overwrite what it doesn’t own.</strong> It refuses files another package owns, and files
-          no package owns unless you pass <code>--force</code>. It renames each file into place, so a running program
-          never sees half a file. Upgrades delete the files a new version dropped.
+          <strong>No partial upgrades.</strong> kiln never runs <code>pacman -Sy</code>. Update with
+          <code>pacman -Syu</code>, as on any Arch system.
+        </p>
+        <p>
+          <strong>The installer shows its work.</strong> <code>kiln-install</code> is a bash script calling
+          <code>sfdisk</code>, <code>pacstrap</code>, <code>genfstab</code>, <code>arch-chroot</code> and
+          <code>bootctl</code> directly, so you can read exactly what it does.
         </p>
 
-        <h2>Development</h2>
+        <h2>Status</h2>
         <p>
-          Kiln builds in a fixed Debian stable container as an unprivileged user, so nothing from your host leaks in.
-          Toolchain versions follow LFS 12.2. Every kiln command takes <code>--root</code>, and the bootstrap uses it
-          to install packages into the new root before Kiln can run on its own.
+          The ISO builds rootless with archiso and <code>make test</code> passes. The installer and desktop haven’t been
+          run end to end in a VM yet. The <a href={`${DOCS}/status/`}>status page</a> lists what works.
         </p>
-        <p>Kiln boots in QEMU from a UEFI disk image. The <a href={`${DOCS}/status/`}>status page</a> lists what works.</p>
 
         <h2>Contributing</h2>
         <p>
-          You can help with new recipes, a check of the bootstrap scripts and checksums against the LFS book, or the
-          part of kiln still to write: package signatures.
-          Start with the <a href={`${DOCS}/contributing/`}>contributing guide</a>.
+          Testing installs in QEMU or on real hardware helps most right now. Start with the
+          <a href={`${DOCS}/contributing/`}>contributing guide</a>.
         </p>
       </article>
     </div>

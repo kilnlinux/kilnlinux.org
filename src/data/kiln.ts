@@ -1,45 +1,42 @@
-// Facts about Kiln Linux, copied from the distro repository (commit b17e40f). Update these when
-// it changes; every page reads from here. Recipe metadata is in recipes.json (scripts/recipes.mjs).
-import recipeList from './recipes.json';
+// Facts about Kiln Linux, copied from the distro repository (KilnLinuxArch). Update these when
+// it changes; every page reads from here.
 
-export const repo = 'https://github.com/kilnlinux/Kiln';
-export const recipes = recipeList;
+export const repo = 'https://github.com/kilnlinux/Kiln-Linux';
 
-/** bootstrap/config.sh (LFS 12.2) and recipes/. */
-export const toolchain = [
-  { name: 'binutils', version: '2.43.1' },
-  { name: 'GCC', version: '14.2.0' },
-  { name: 'glibc', version: '2.40' },
-  { name: 'Linux', version: '6.10.5' },
-  { name: 'GMP', version: '6.3.0' },
-  { name: 'MPFR', version: '4.2.1' },
-  { name: 'MPC', version: '1.3.1' },
-];
-
-/** recipes/runit, recipes/grub. */
-export const runitVersion = '2.1.2';
-export const grubVersion = '2.12';
-
-/** kiln/Cargo.toml. */
+/** packages/kiln/Cargo.toml. */
 export const kilnVersion = '0.1.0';
 
-/** kiln/src/main.rs: subcommands and their help text. */
+/** packages/kiln/src/cli.rs: commands and their help text. */
 export const commands = [
-  { name: 'build', args: '<recipe> [--out DIR]', help: 'Build a recipe directory into a .kpkg package.' },
-  { name: 'fetch', args: '<recipe|ORDER>…', help: 'Download and verify sources, without building.' },
-  { name: 'build-all', args: '[ORDER] [--force] [--keep-going]', help: 'Build and install every recipe in an ORDER file (default recipes/ORDER), in order, skipping ones already installed.' },
-  { name: 'install', args: '<name|file.kpkg>… [--force]', help: 'Install or upgrade packages by name, with their dependencies, or from .kpkg files.' },
-  { name: 'remove', args: '<name>… [--force]', help: 'Remove installed packages.' },
-  { name: 'sync', args: '', help: 'Download the package index from each repository.' },
-  { name: 'upgrade', args: '[--force]', help: 'Upgrade installed packages to the repositories’ versions.' },
-  { name: 'search', args: '<term>', help: 'Search the repositories by name and summary.' },
-  { name: 'index', args: '[dir]', help: 'Write index.toml for a directory of packages, making it a repository.' },
-  { name: 'list', args: '', help: 'List installed packages.' },
-  { name: 'info', args: '<name>', help: 'Show an installed package’s metadata.' },
-  { name: 'files', args: '<name>', help: 'List the files an installed package owns.' },
-  { name: 'owner', args: '<path>', help: 'Show which package owns a path.' },
+  { name: 'list', help: 'Active profiles and the packages kiln manages' },
+  { name: 'search <query>…', help: 'Search the official repositories (pacman -Ss)' },
+  { name: 'profile list', help: 'All profiles kiln can find' },
+  { name: 'profile show <profile>', help: 'A profile’s packages and whether they’re installed' },
+  { name: 'profile create <name>', help: 'New empty profile in ~/.config/kiln/profiles' },
+  { name: 'plan <profile>', help: 'What apply would change; changes nothing' },
+  { name: 'apply <profile>', help: 'Install what the profile is missing, mark it active' },
+  { name: 'remove <profile>', help: 'Mark a profile inactive (keeps its packages)' },
+  { name: 'doctor', help: 'Check pacman, dependencies and profiles' },
+  { name: 'export <name> [pkg…]', help: 'Write a profile from the given packages, or from all explicitly installed ones' },
 ];
 
-/** Not done yet, per README.md and kiln/src. */
-export const kilnMissing = ['package signatures'];
-export const systemMissing = ['a live ISO to run the installer from', 'BIOS boot', 'a desktop'];
+/** profiles/*.toml. */
+export const profiles = [
+  { name: 'core', description: "Minimal command-line system", packages: ["networkmanager", "sudo", "nano", "less", "man-db", "fastfetch"] },
+  { name: 'twmx', description: "twmx X11 desktop: xterm, dmenu, dunst", packages: ["twmx", "xorg-server", "xorg-xinit", "xorg-xrdb", "xorg-xsetroot", "xorg-xrandr", "xterm", "dmenu", "dunst", "ttf-dejavu"] },
+  { name: 'i3', description: "i3 X11 tiling desktop: i3status, i3lock, xterm, dmenu, dunst", packages: ["i3-wm", "i3status", "i3lock", "xorg-server", "xorg-xinit", "xorg-xrdb", "xorg-xsetroot", "xorg-xrandr", "xterm", "dmenu", "dunst", "ttf-dejavu"] },
+  { name: 'sway', description: "Sway Wayland desktop: foot, fuzzel, mako", packages: ["sway", "swaybg", "swaylock", "foot", "fuzzel", "mako", "ttf-dejavu"] },
+  { name: 'hyprland', description: "Hyprland Wayland tiling desktop: kitty, wofi, mako", packages: ["hyprland", "xdg-desktop-portal-hyprland", "kitty", "wofi", "mako", "polkit", "ttf-dejavu"] },
+  { name: 'xfce', description: "XFCE desktop environment (X11) with the LightDM login screen", packages: ["xfce4-session", "xfwm4", "xfce4-panel", "xfdesktop", "xfce4-settings", "xfce4-terminal", "thunar", "xorg-server", "lightdm", "lightdm-gtk-greeter", "ttf-dejavu"] },
+  { name: 'plasma', description: "KDE Plasma desktop environment (Wayland) with the SDDM login screen", packages: ["plasma-desktop", "sddm", "konsole", "dolphin", "plasma-nm", "kscreen", "noto-fonts"] },
+  { name: 'gnome', description: "GNOME desktop environment (Wayland) with the GDM login screen", packages: ["gnome-shell", "gdm", "gnome-control-center", "gnome-console", "nautilus", "xdg-desktop-portal-gnome"] },
+  { name: 'developer', description: "Git, compilers, make, debugger", packages: ["git", "base-devel", "gdb"] },
+  { name: 'audio', description: "PipeWire audio (PulseAudio and ALSA compatible)", packages: ["pipewire", "pipewire-pulse", "pipewire-alsa", "wireplumber"] },
+];
+
+/** Known limits, per README.md. */
+export const missing = ['a hosted repository for [kiln] package updates (twmx updates per user from GitHub)', 'broader hardware testing'];
+
+
+/** Link to a package on archlinux.org. */
+export const archPackage = (name: string) => `https://archlinux.org/packages/?q=${encodeURIComponent(name)}`;
