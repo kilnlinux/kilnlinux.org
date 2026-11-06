@@ -4,11 +4,32 @@ import PageHeader from '../components/PageHeader.astro';
 import Section from '../components/Section.astro';
 import CodeBlock from '../components/CodeBlock.astro';
 
-// The Arch-based Kiln Linux release; update these with each release.
+// The latest Kiln Linux release, read from GitHub when the site builds. No release, no build:
+// a deploy never ships a download link that is missing or wrong.
 const distro = 'https://github.com/kilnlinux/Kiln-Linux';
-const version = 'v0.1.0';
-const iso = 'kilnlinux-2026.11.04-x86_64.iso';
-const sha256 = 'c243d60080da5fd12509145b7666ff874d678bf38094d3fed95bc8ad8693658a';
+const res = await fetch('https://api.github.com/repos/kilnlinux/Kiln-Linux/releases/latest', {
+  headers: { Accept: 'application/vnd.github+json' },
+});
+if (!res.ok) throw new Error(`GitHub latest release: HTTP ${res.status}`);
+const release: { tag_name: string; body: string; assets: { name: string; browser_download_url: string }[] } =
+  await res.json();
+const version = release.tag_name;
+const isoAsset = release.assets.find((a) => a.name.endsWith('.iso'));
+const sumAsset = release.assets.find((a) => a.name.endsWith('.iso.sha256'));
+if (!isoAsset || !sumAsset) throw new Error(`${version}: release has no .iso and .iso.sha256`);
+const iso = isoAsset.name;
+const sha256 = (await (await fetch(sumAsset.browser_download_url)).text()).split(/\s/)[0];
+if (!/^[0-9a-f]{64}$/.test(sha256)) throw new Error(`${version}: bad checksum file`);
+
+// Bullets under a "### <heading>" in the release notes, as HTML with `code` spans.
+const escape = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const bullets = (heading: string) => {
+  const section = release.body.split(/^### /m).find((b) => b.startsWith(heading + '\n') || b.startsWith(heading + '\r'));
+  return (section ?? '').split(/\r?\n/).filter((l) => l.startsWith('- '))
+    .map((l) => escape(l.slice(2)).replace(/`([^`]+)`/g, '<code>$1</code>'));
+};
+const tested = bullets('Tested');
+const notTested = bullets('Not tested yet');
 const isoUrl = `${distro}/releases/download/${version}/${iso}`;
 const releaseUrl = `${distro}/releases/tag/${version}`;
 const installDoc = `${distro}/blob/${version}/docs/install.md`;
@@ -60,22 +81,14 @@ const steps = [
       </p>
       <p class="mt-2 break-all font-mono text-xs text-mute">SHA-256 {sha256}</p>
       <div class="mt-6 grid gap-6 text-sm sm:grid-cols-2">
-        <div>
-          <h2 class="label">Tested</h2>
-          <ul class="mt-2 list-disc space-y-1 pl-5">
-            <li>Unattended install in QEMU (UEFI, systemd-boot)</li>
-            <li>Boot to the twmx desktop on tty1 login</li>
-            <li>The <code>kiln</code> package profiles and daily <code>kiln-update</code> timer</li>
-          </ul>
-        </div>
-        <div>
-          <h2 class="label">Not tested yet</h2>
-          <ul class="mt-2 list-disc space-y-1 pl-5">
-            <li>The other desktops: i3, Sway, Hyprland, XFCE, KDE Plasma, GNOME</li>
-            <li>Legacy BIOS boot, GRUB and Limine</li>
-            <li>Real hardware</li>
-          </ul>
-        </div>
+        {[['Tested', tested], ['Not tested yet', notTested]].filter(([, items]) => items.length).map(([label, items]) => (
+          <div>
+            <h2 class="label">{label}</h2>
+            <ul class="mt-2 list-disc space-y-1 pl-5">
+              {(items as string[]).map((item) => <li set:html={item} />)}
+            </ul>
+          </div>
+        ))}
       </div>
     </div>
   </div>

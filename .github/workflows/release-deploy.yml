@@ -1,0 +1,35 @@
+# Redeploy kilnlinux.org when a new Kiln Linux release is out: the download page reads the
+# latest release at build time. Needs the CLOUDFLARE_API_TOKEN secret (Workers edit permission).
+name: Deploy on new release
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check whether the live download page shows the latest release
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=$(gh release view --repo kilnlinux/Kiln-Linux --json tagName -q .tagName)
+          if [[ $GITHUB_EVENT_NAME != workflow_dispatch ]] && curl -fsS https://kilnlinux.org/download/ | grep -qF "$tag"; then
+            echo "kilnlinux.org already shows $tag"
+          else
+            echo "deploy=yes" >>"$GITHUB_OUTPUT"
+          fi
+      - if: steps.check.outputs.deploy
+        uses: actions/checkout@v4
+      - if: steps.check.outputs.deploy
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.check.outputs.deploy
+        run: npm ci && npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

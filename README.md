@@ -88,6 +88,8 @@ The `kilnlinux.org` zone must be on the same Cloudflare account. Cloudflare crea
 
 To deploy on push, connect the Git repository to each Worker under Settings, then Build. Use root directory `/` with `npm run build` for `kilnlinux-org`, and root directory `docs` with `npm run build` for `kilnlinux-docs`. Both use `npx wrangler deploy` as the deploy command. The build command can stay empty: each `wrangler.jsonc` runs `npm run build` before deploying.
 
+The download page reads the latest [Kiln-Linux release](https://github.com/kilnlinux/Kiln-Linux/releases/latest) when the site builds: the version, the `.iso` asset, the checksum from the `.iso.sha256` asset, and the bullets under `### Tested` and `### Not tested yet` in the release notes. The build fails if the release has no ISO or checksum. `.github/workflows/release-deploy.yml` checks every hour and redeploys when kilnlinux.org doesn't show the latest tag yet. It needs a `CLOUDFLARE_API_TOKEN` repository secret with permission to edit Workers.
+
 `search.kilnlinux.org` is a second custom domain on `kilnlinux-org`. The package page is
 `src/pages/search.astro`, linked as `https://search.kilnlinux.org/search` (`SEARCH` in
 `src/data/site.ts`). `public/_redirects` sends old `/packages?q=…` links there.
