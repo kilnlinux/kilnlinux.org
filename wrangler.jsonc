@@ -12,6 +12,8 @@
   ],
   "workers_dev": false,
   "preview_urls": false,
+  // Workers Builds runs `wrangler preview` for non-main branches; it needs this block, even empty.
+  "previews": {},
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page"
