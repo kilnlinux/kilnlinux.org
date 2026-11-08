@@ -41,7 +41,6 @@ Kiln Linux is young. This page separates what someone has run from what only exi
 ## Known limits
 
 - No Secure Boot support. Turn Secure Boot off in your firmware settings.
-- The installed system doesn't include `sof-firmware`, which most Intel laptops from about 2019 on need for sound. If you have no sound, run `sudo pacman -S sof-firmware` and reboot.
 - The `[kiln]` repository is copied from the ISO and isn't signed. `kiln-update.timer` checks GitHub releases daily for newer Kiln packages.
 - The installer doesn't set an X11 keyboard layout. On a non-US keyboard, run `sudo localectl set-x11-keymap <layout>` after installing.
 - Kiln hasn't measured boot time yet.
