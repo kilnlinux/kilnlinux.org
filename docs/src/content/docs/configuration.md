@@ -54,7 +54,7 @@ To give an existing user the defaults without overwriting their files: `cp -rn /
 
 ## Boot loader
 
-Installed systems boot with systemd-boot from the EFI system partition, mounted at `/boot`. Its files:
+The installer sets up systemd-boot (the default on UEFI), GRUB (the default on BIOS) or Limine. The EFI system partition is mounted at `/boot`. systemd-boot's files:
 
 - `/boot/loader/loader.conf`: the default entry, a 3-second menu, and the entry editor turned off.
 - `/boot/loader/entries/kiln.conf`: the kernel, the initramfs and `root=UUID=…`.
@@ -79,4 +79,4 @@ SigLevel = Optional TrustAll
 Server = file:///usr/share/kiln/repo
 ```
 
-It holds packages Kiln builds itself; today that's twmx. The repository is a local, root-owned directory copied from the ISO, and its packages aren't signed. twmx updates only when you reinstall from a newer ISO or copy a newer repository into place. If you don't use twmx, you can delete the block.
+It holds packages Kiln builds itself; today that's twmx. The repository is a local, root-owned directory copied from the ISO, and its packages aren't signed. `kiln-update.timer` checks GitHub releases daily for newer `[kiln]` packages, and a user timer builds twmx updates into `~/.local/bin`. If you don't use twmx, you can delete the block.

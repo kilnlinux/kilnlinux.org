@@ -7,7 +7,7 @@ Kiln is early, and a test install on your machine helps more than anything else 
 
 ## Good places to start
 
-- **Install it and report back.** Boot the ISO in QEMU or on real hardware, install, and open an issue with your hardware, firmware (UEFI or BIOS), desktop and what happened. [Status](../status/) lists what nobody has tried yet: each desktop other than twmx, cfdisk partitioning, btrfs, USB sticks, real hardware.
+- **Install it and report back.** Boot the ISO in QEMU or on real hardware, install, and open an issue with your hardware, firmware (UEFI or BIOS), desktop and what happened. [Status](../status/) lists what nobody has tried yet: real hardware installs, logging in to XFCE, KDE Plasma and GNOME, a root password, `linux-hardened`.
 - **Profiles.** Propose a package for a profile, with the reason it belongs there. Kiln prefers a profile users opt into over a new default.
 - **Docs.** If something on these pages turned out wrong for you, fix it.
 

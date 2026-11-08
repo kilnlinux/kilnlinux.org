@@ -17,12 +17,12 @@ The screenshot comes from a test install in QEMU with the default twmx desktop. 
 | Login | window managers start when you log in on tty1; XFCE, Plasma and GNOME get a login screen |
 | Network | NetworkManager on the installed system; systemd-networkd and iwd on the live ISO |
 | Audio | PipeWire, optional |
-| Boot | systemd-boot on installed systems (UEFI); the ISO boots on UEFI and BIOS |
+| Boot | systemd-boot, GRUB or Limine; UEFI and BIOS |
 
 An installed Kiln system is an Arch system. The [Arch wiki](https://wiki.archlinux.org/) applies to it, and `sudo pacman -Syu` updates it.
 
-:::caution[Early project]
-Kiln has no published ISO yet. You build it yourself from [the repository](https://github.com/kilnlinux/Kiln-Linux). Installs have been tested on UEFI virtual machines with ext4 and twmx, both unattended and through the installer's menus. [Status](./status/) lists what has and hasn't been tried.
+:::caution[Beta]
+Download the ISO from [kilnlinux.org/download](https://kilnlinux.org/download), or build it yourself from [the repository](https://github.com/kilnlinux/Kiln-Linux). Installs pass in QEMU on UEFI and BIOS, and the live ISO has booted on a real PC, but nobody has installed on real hardware yet. [Status](./status/) lists what has and hasn't been tried.
 :::
 
 ## Where to go

@@ -54,13 +54,14 @@ const facts = [
         <p>
           <strong>The installer shows its work.</strong> <code>kiln-install</code> is a bash script calling
           <code>sfdisk</code>, <code>pacstrap</code>, <code>genfstab</code>, <code>arch-chroot</code> and
-          <code>bootctl</code> directly, so you can read exactly what it does.
+          <code>bootctl</code> directly, so you can read what it does.
         </p>
 
         <h2>Status</h2>
         <p>
-          The ISO builds rootless with archiso and <code>make test</code> passes. The installer and desktop haven’t been
-          run end to end in a VM yet. The <a href={`${DOCS}/status/`}>status page</a> lists what works.
+          Kiln is in beta. Unattended installs pass in QEMU on UEFI and BIOS, with every boot loader, LUKS2, ext4 and
+          btrfs, and every desktop. The live ISO has booted on a real PC, but nobody has installed on real hardware yet.
+          The <a href={`${DOCS}/status/`}>status page</a> lists what works.
         </p>
 
         <h2>Contributing</h2>

@@ -26,8 +26,8 @@ const gh = (path: string) => `${repo}/tree/main/${path}`;
       <h1 id="title" class="text-4xl">The Kiln Linux distribution</h1>
       <p>
         Kiln is a minimal distribution based on <a href="https://archlinux.org">Arch Linux</a>. It uses Arch’s
-        repositories, pacman and systemd unchanged, and adds a small live ISO with a terminal installer, an optional
-        Sway desktop, and <code>kiln</code>, a tool that keeps your package sets in readable
+        repositories, pacman and systemd unchanged, and adds a small live ISO with a menu-driven installer, a choice of seven desktops with twmx as the default,
+        and <code>kiln</code>, a tool that keeps your package sets in readable
         <a href={SEARCH}>profile</a> files.
       </p>
       <p>
@@ -79,7 +79,7 @@ const gh = (path: string) => `${repo}/tree/main/${path}`;
     <div>
       <h2 class="text-2xl">Profiles</h2>
       <p>
-        A profile is a named list of packages in a TOML file. Kiln ships four: {profiles.map((p, i) => <>{i > 0 && ', '}<code>{p.name}</code></>)}.
+        A profile is a named list of packages in a TOML file. Kiln ships {profiles.length}: {profiles.map((p, i) => <>{i > 0 && ', '}<code>{p.name}</code></>)}.
         They stack, and you can write your own.
       </p>
       <p><a href={SEARCH}>See what each profile installs</a>.</p>
@@ -96,9 +96,12 @@ const gh = (path: string) => `${repo}/tree/main/${path}`;
       </p>
     </div>
     <div>
-      <h2 class="text-2xl">Sway desktop</h2>
-      <p>The optional desktop profile is Sway on Wayland, with foot, fuzzel and mako, and PipeWire for audio.</p>
-      <p>There’s no display manager: log in on a TTY and run <code>sway</code>.</p>
+      <h2 class="text-2xl">Desktops</h2>
+      <p>
+        The installer offers <a href="https://github.com/arcbaseproject/twmx">twmx</a> (the default), i3, Sway,
+        Hyprland, XFCE, KDE Plasma, GNOME or none.
+      </p>
+      <p>The four window managers start when you log in on tty1. XFCE, Plasma and GNOME get a login screen.</p>
     </div>
   </section>
 

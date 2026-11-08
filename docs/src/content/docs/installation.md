@@ -3,7 +3,7 @@ title: Installation
 description: Build the Kiln Linux ISO, boot it in QEMU or from USB, and install with kiln-install.
 ---
 
-Kiln has no published ISO yet. You build one on an x86_64 Arch Linux machine. The build downloads about 500 MiB of packages and took under five minutes on the machine Kiln is developed on.
+Download the beta ISO from [kilnlinux.org/download](https://kilnlinux.org/download), or build one on an x86_64 Arch Linux machine. The build downloads about 500 MiB of packages and took under five minutes on the machine Kiln is developed on.
 
 ## Build the ISO
 

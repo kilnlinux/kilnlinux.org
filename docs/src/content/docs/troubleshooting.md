@@ -43,4 +43,4 @@ For problems with Arch packages, pacman or systemd, the [Arch wiki](https://wiki
 
 **`kiln remove --purge` fails.** Another installed package still depends on one of the profile's packages. pacman refused the whole removal, so nothing changed, and the profile stays active. pacman's message names the package.
 
-**twmx doesn't update with `pacman -Syu`.** twmx comes from `[kiln]`, a local repository copied from the ISO. It updates when you install from a newer ISO.
+**twmx doesn't update with `pacman -Syu`.** twmx comes from `[kiln]`, a local repository copied from the ISO, so pacman never sees a newer one. A daily user timer builds twmx updates from GitHub into `~/.local/bin` instead; run `/usr/bin/twmx-update` to check now.

@@ -11,7 +11,7 @@ interface Props { title?: string; description?: string; noindex?: boolean; canon
 const {
   title,
   noindex = false,
-  description = 'Kiln Linux is a minimal x86_64 distribution based on Arch Linux, with a live ISO, a terminal installer, an optional Sway desktop and kiln, a package profile tool written in Rust.',
+  description = 'Kiln Linux is a minimal x86_64 distribution based on Arch Linux, with a live ISO, a menu-driven installer, seven desktops with twmx as the default, and kiln, a package profile tool written in Rust.',
 } = Astro.props;
 const fullTitle = title ? `${title} | Kiln Linux` : 'Kiln Linux: a minimal distribution based on Arch Linux';
 const pathname = Astro.url.pathname.replace(/\/+$/, '') || '/';
@@ -62,7 +62,7 @@ const structuredData = {
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={image} />
-    <meta property="og:image:alt" content="Kiln Linux — a minimal distribution based on Arch Linux" />
+    <meta property="og:image:alt" content="Kiln Linux: a minimal distribution based on Arch Linux" />
     <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -70,7 +70,7 @@ const structuredData = {
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={image} />
-    <meta name="twitter:image:alt" content="Kiln Linux — a minimal distribution based on Arch Linux" />
+    <meta name="twitter:image:alt" content="Kiln Linux: a minimal distribution based on Arch Linux" />
     {!noindex && <script type="application/ld+json" set:html={JSON.stringify(structuredData).replace(/</g, '\\u003c')} />}
   </head>
   <body class="min-h-dvh">
