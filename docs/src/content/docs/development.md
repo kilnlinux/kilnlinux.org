@@ -59,7 +59,7 @@ The accessibility pieces stay: the speech boot entry, brltty and espeakup.
 - **`validate`** checks the installed system. A failed check fails the install.
 - **`--config FILE`** sources FILE for the variables and skips the menus.
 
-systemd-boot ships with systemd, and its whole config is two short files. It only works on UEFI, which is why BIOS installs wait for a GRUB path.
+systemd-boot ships with systemd, and its whole config is two short files. It only works on UEFI, so BIOS installs use GRUB or Limine.
 
 The installer applies profiles with `kiln apply` inside the new system, so kiln's records are correct from the first boot and `kiln remove twmx --purge` works right away.
 

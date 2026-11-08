@@ -15,7 +15,9 @@ For problems with Arch packages, pacman or systemd, the [Arch wiki](https://wiki
 
 ## Booting the ISO
 
-**The installer says the computer started in BIOS mode.** Reboot and pick the UEFI entry for the stick in your firmware's boot menu. In QEMU, use `make run`, which loads OVMF, the UEFI firmware.
+**The installer says systemd-boot needs UEFI.** The computer started in BIOS mode. Choose GRUB or Limine under Boot loader, or reboot and pick the stick's UEFI entry in your firmware's boot menu.
+
+**The stick doesn't boot at all.** Turn off Secure Boot in your firmware settings; Kiln isn't signed for it.
 
 ## Installing
 

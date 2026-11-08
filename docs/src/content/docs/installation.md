@@ -24,7 +24,7 @@ If a build fails, the next `make iso` starts fresh. `make clean` removes everyth
 ```sh
 sudo pacman -S --needed qemu-desktop edk2-ovmf
 make run          # the ISO on UEFI, with a blank 20 GiB disk at build/qemu/disk.qcow2
-make run-bios     # the ISO on BIOS (live system only; the installer needs UEFI)
+make run-bios     # the ISO on BIOS
 make run-disk     # boot the disk you installed to
 ```
 
@@ -34,7 +34,7 @@ QEMU uses KVM when your user can open `/dev/kvm`. To start over with a blank dis
 
 ## Write it to a USB stick
 
-The ISO is a hybrid image, so you can write it to a USB stick. Nobody has booted Kiln from USB on real hardware yet; please report how it goes. Find the stick with `lsblk`, then replace `/dev/sdX` below with it. This erases everything on the stick.
+The ISO is a hybrid image, so you can write it to a USB stick. It has booted from USB on real hardware, but nobody has installed from it on real hardware yet; please report how it goes. Turn off Secure Boot first: Kiln isn't signed for it. Find the stick with `lsblk`, then replace `/dev/sdX` below with it. This erases everything on the stick.
 
 ```sh
 sudo dd if=out/kilnlinux-*.iso of=/dev/sdX bs=4M conv=fsync oflag=direct status=progress
@@ -42,7 +42,7 @@ sudo dd if=out/kilnlinux-*.iso of=/dev/sdX bs=4M conv=fsync oflag=direct status=
 
 ## Install
 
-Boot the ISO in UEFI mode. In your firmware's boot menu, pick the entry marked UEFI. The live system logs you in as root and prints a short welcome. Then run:
+Boot the ISO in UEFI or BIOS mode. The live system logs you in as root and prints a short welcome. Then run:
 
 ```sh
 kiln-install
@@ -61,14 +61,15 @@ The installer opens on a main menu. Each line shows a setting and its current va
 | User account | your login name and password. You get sudo |
 | Desktop | twmx (default), i3, Sway, Hyprland, XFCE, KDE Plasma, GNOME, or none. See [Desktops](../desktops/) |
 | Extras | PipeWire audio, and developer tools (git, base-devel, gdb) |
-| Disk | the target disk, how to partition it, and ext4 or btrfs |
-| Boot loader | systemd-boot; the line only explains it |
+| Kernel | one or more of `linux` (default), `linux-lts`, `linux-zen` and `linux-hardened`. The first boots by default; each other one gets its own boot menu entry |
+| Disk | the target disk, how to partition it, ext4 or btrfs, and optional LUKS2 encryption of root (you type the passphrase at every boot) |
+| Boot loader | systemd-boot (UEFI only; the default there), GRUB (the default on BIOS) or Limine |
 
 ### Disk
 
 The disk list leaves out the USB stick or CD you booted from, and the installer refuses a disk smaller than 8 GiB or one with mounted filesystems. You then choose a scheme:
 
-- **Erase the whole disk.** The installer creates a GPT table with a 1 GiB EFI system partition and gives the rest to the root filesystem.
+- **Erase the whole disk.** The installer creates a GPT table with a 1 GiB EFI system partition and gives the rest to the root filesystem. On BIOS it first adds a 1 MiB BIOS boot partition for the boot loader.
 - **Edit partitions with cfdisk.** You partition the disk yourself, then pick the EFI system partition and the root partition from a list. The installer formats root. For the EFI partition you choose: format it, or keep it to share with another system.
 
 The EFI partition gets mounted at `/boot` and holds the kernel, so give it 512 MiB or more.
@@ -80,12 +81,12 @@ Install checks every setting first and names the first problem it finds, such as
 The installer then:
 
 1. partitions and formats the disk;
-2. installs `base`, `linux`, `linux-firmware` and your CPU's microcode with `pacstrap`;
+2. installs `base`, your kernels, `linux-firmware` and your CPU's microcode with `pacstrap`;
 3. adds Kiln's files, the `[kiln]` repository and the os-release hook;
 4. sets the time zone, locale, keyboard and hostname, and turns on time sync;
 5. applies the `core` profile, your desktop and your extras with `kiln apply`, and turns on NetworkManager and your desktop's login screen if it has one;
 6. creates your user, sets up sudo, and locks root or sets its password;
-7. installs systemd-boot and writes the boot entry;
+7. installs your boot loader and writes its boot entries;
 8. checks the result: kernel, initramfs, boot loader, root UUID in the boot entry and fstab, the user, os-release and `kiln doctor`.
 
 Output scrolls in a box and goes to `/tmp/kiln-install.log`. If any command fails, the installer stops, shows the end of the log and says Kiln Linux is not installed. It never reports success unless step 8 passes. The live system runs from RAM, so copy the log somewhere before you reboot.
@@ -106,6 +107,9 @@ USER_PW='change me'
 TIMEZONE=Europe/Berlin
 LOCALE=en_US.UTF-8
 KEYMAP=us
+ENCRYPT=yes LUKS_PW='disk passphrase'   # optional
+BOOTLOADER=limine      # optional: systemd-boot, grub or limine
+KERNEL=(linux linux-lts)   # optional; the first is the default
 ```
 
 The file holds passwords in plain text, so delete it afterwards. The `make e2e` test uses this mode.
